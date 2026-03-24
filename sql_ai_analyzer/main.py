@@ -1,0 +1,244 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+AI-SQL质量分析系统主程序
+主要功能：从数据库读取待分析SQL，收集表元数据，调用大模型API分析，存储结果
+"""
+
+import sys
+import os
+import logging
+from typing import List, Dict, Any, Optional
+
+# 添加项目根目录到Python路径
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from config.config_manager import ConfigManager
+from data_collector.sql_extractor import SQLExtractor
+from data_collector.metadata_collector import MetadataCollector
+from ai_integration.model_client import ModelClient
+from storage.result_processor import ResultProcessor
+from utils.logger import setup_logger
+
+
+class SQLAnalyzer:
+    """SQL质量分析器主类"""
+    
+    def __init__(self, config_path: str = None):
+        """
+        初始化分析器
+        
+        Args:
+            config_path: 配置文件路径，默认为config/config.ini
+        """
+        # 初始化配置
+        self.config = ConfigManager(config_path)
+        
+        # 初始化日志
+        self.logger = setup_logger(__name__, self.config.get_log_config())
+        
+        # 初始化各模块
+        self.sql_extractor = SQLExtractor(self.config, self.logger)
+        self.metadata_collector = MetadataCollector(self.config, self.logger)
+        self.model_client = ModelClient(self.config, self.logger)
+        self.result_processor = ResultProcessor(self.config, self.logger)
+        
+        self.logger.info("SQL质量分析器初始化完成")
+    
+    def analyze_single_sql(self, sql_id: int) -> Dict[str, Any]:
+        """
+        分析单个SQL语句
+        
+        Args:
+            sql_id: SQL记录ID
+            
+        Returns:
+            分析结果字典
+        """
+        try:
+            self.logger.info(f"开始分析SQL ID: {sql_id}")
+            
+            # 1. 提取SQL信息
+            sql_info = self.sql_extractor.extract_sql_by_id(sql_id)
+            if not sql_info:
+                self.logger.error(f"未找到SQL ID: {sql_id}")
+                return {"success": False, "error": "SQL记录不存在"}
+            
+            # 2. 提取表名（优先使用TABLENAME字段）
+            table_names = self.sql_extractor.extract_table_names(
+                sql_info['sql_text'], 
+                sql_info.get('table_name')
+            )
+            self.logger.info(f"提取到表名: {table_names}")
+            
+            # 3. 收集表元数据
+            # 使用system_id作为db_alias
+            db_alias = sql_info.get('system_id', 'db_production')
+            metadata = self.metadata_collector.collect_metadata(
+                db_alias, table_names
+            )
+            
+            # 4. 构建请求数据
+            request_data = {
+                "sql_statement": sql_info['sql_text'],
+                "tables": metadata,
+                "db_alias": db_alias
+            }
+            
+            # 5. 调用大模型API
+            analysis_result = self.model_client.analyze_sql(request_data)
+            
+            # 6. 处理并存储结果
+            result = self.result_processor.process_result(
+                sql_id, analysis_result, metadata
+            )
+            
+            self.logger.info(f"SQL ID {sql_id} 分析完成")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"分析SQL ID {sql_id} 时发生错误: {str(e)}", exc_info=True)
+            # 更新错误状态
+            self.result_processor.update_error_status(sql_id, str(e))
+            return {"success": False, "error": str(e)}
+    
+    def analyze_batch(self, batch_size: int = None) -> Dict[str, Any]:
+        """
+        批量分析SQL语句
+        
+        Args:
+            batch_size: 批量大小，默认为配置中的值
+            
+        Returns:
+            批量分析结果
+        """
+        if batch_size is None:
+            batch_size = self.config.get_processing_config().get('batch_size', 10)
+        
+        self.logger.info(f"开始批量分析，批量大小: {batch_size}")
+        
+        try:
+            # 获取待分析的SQL列表
+            pending_sqls = self.sql_extractor.get_pending_sqls(batch_size)
+            
+            if not pending_sqls:
+                self.logger.info("没有待分析的SQL语句")
+                return {"success": True, "processed": 0, "results": []}
+            
+            results = []
+            success_count = 0
+            fail_count = 0
+            
+            for sql_info in pending_sqls:
+                sql_id = sql_info['id']
+                try:
+                    result = self.analyze_single_sql(sql_id)
+                    if result.get('success'):
+                        success_count += 1
+                    else:
+                        fail_count += 1
+                    results.append({"sql_id": sql_id, "result": result})
+                except Exception as e:
+                    self.logger.error(f"处理SQL ID {sql_id} 时发生异常: {str(e)}")
+                    fail_count += 1
+                    results.append({"sql_id": sql_id, "error": str(e)})
+            
+            summary = {
+                "success": True,
+                "processed": len(pending_sqls),
+                "success_count": success_count,
+                "fail_count": fail_count,
+                "results": results
+            }
+            
+            self.logger.info(f"批量分析完成: 共处理 {len(pending_sqls)} 条，成功 {success_count} 条，失败 {fail_count} 条")
+            return summary
+            
+        except Exception as e:
+            self.logger.error(f"批量分析时发生错误: {str(e)}", exc_info=True)
+            return {"success": False, "error": str(e)}
+    
+    def run_once(self) -> Dict[str, Any]:
+        """运行一次分析任务"""
+        self.logger.info("开始运行分析任务")
+        result = self.analyze_batch()
+        self.logger.info("分析任务运行完成")
+        return result
+    
+    def run_continuously(self, interval_seconds: int = 300):
+        """
+        持续运行分析任务
+        
+        Args:
+            interval_seconds: 运行间隔（秒），默认5分钟
+        """
+        import time
+        
+        self.logger.info(f"开始持续运行模式，间隔: {interval_seconds}秒")
+        
+        try:
+            while True:
+                try:
+                    self.run_once()
+                except Exception as e:
+                    self.logger.error(f"运行分析任务时发生错误: {str(e)}")
+                
+                self.logger.info(f"等待 {interval_seconds} 秒后继续...")
+                time.sleep(interval_seconds)
+                
+        except KeyboardInterrupt:
+            self.logger.info("收到中断信号，停止运行")
+        except Exception as e:
+            self.logger.error(f"持续运行模式发生错误: {str(e)}")
+
+
+def main():
+    """主函数入口"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='AI-SQL质量分析系统')
+    parser.add_argument('--config', '-c', default='config/config.ini', 
+                       help='配置文件路径')
+    parser.add_argument('--mode', '-m', choices=['single', 'batch', 'continuous'], 
+                       default='batch', help='运行模式')
+    parser.add_argument('--sql-id', type=int, help='单个SQL的ID（single模式使用）')
+    parser.add_argument('--batch-size', type=int, default=10, 
+                       help='批量大小（batch模式使用）')
+    parser.add_argument('--interval', type=int, default=300,
+                       help='运行间隔秒数（continuous模式使用）')
+    
+    args = parser.parse_args()
+    
+    # 检查配置文件是否存在
+    if not os.path.exists(args.config):
+        print(f"错误: 配置文件不存在: {args.config}")
+        print(f"请复制 config.ini.example 为 {args.config} 并填写配置")
+        sys.exit(1)
+    
+    # 创建分析器实例
+    analyzer = SQLAnalyzer(args.config)
+    
+    try:
+        if args.mode == 'single':
+            if not args.sql_id:
+                print("错误: single模式需要指定 --sql-id 参数")
+                sys.exit(1)
+            result = analyzer.analyze_single_sql(args.sql_id)
+            print(f"分析结果: {result}")
+            
+        elif args.mode == 'batch':
+            result = analyzer.analyze_batch(args.batch_size)
+            print(f"批量分析结果: {result}")
+            
+        elif args.mode == 'continuous':
+            analyzer.run_continuously(args.interval)
+            
+    except KeyboardInterrupt:
+        print("\n程序被用户中断")
+    except Exception as e:
+        print(f"程序运行错误: {str(e)}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

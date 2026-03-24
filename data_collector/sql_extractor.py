@@ -1,0 +1,807 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+SQL提取与解析模块
+负责从数据库读取待分析SQL并解析表名
+"""
+
+import re
+import sqlparse
+from typing import List, Dict, Any, Optional
+from utils.logger import LogMixin
+from utils.db_connector_pymysql import DatabaseManager
+from .param_extractor import ParamExtractor
+from utils.sql_preprocessor import SQLPreprocessor
+from .shell_sql_extractor import ShellScriptSQLExtractor
+
+
+class SQLExtractor(LogMixin):
+    """SQL提取器"""
+    
+    def __init__(self, config_manager, logger=None):
+        """
+        初始化SQL提取器
+        
+        Args:
+            config_manager: 配置管理器
+            logger: 日志记录器
+        """
+        self.config_manager = config_manager
+        
+        if logger:
+            self.set_logger(logger)
+        
+        # 初始化源数据库连接
+        source_config = config_manager.get_database_config()
+        self.source_db = DatabaseManager(source_config)
+        
+        # 初始化动态SQL解析器（如果需要）
+        self.dynamic_sql_parser = None
+        try:
+            from .dynamic_sql_parser import DynamicSQLParser
+            self.dynamic_sql_parser = DynamicSQLParser(config_manager, logger)
+            self.logger.info("动态SQL解析器初始化成功")
+        except Exception as e:
+            self.logger.warning(f"初始化动态SQL解析器失败: {str(e)}，将使用标准SQL处理")
+        
+        self.logger.info("SQL提取器初始化完成")
+    
+    def get_pending_sqls(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        获取待分析的SQL语句
+        
+        Args:
+            limit: 获取数量限制
+            
+        Returns:
+            SQL记录列表
+        """
+        try:
+            # 根据新表AM_SQLLINE_INFO结构查询
+            query = """
+                SELECT 
+                    ID as id,
+                    SQLLINE as sql_text,
+                    TABLENAME as table_name,
+                    OPERATETYPE as operate_type,
+                    PROJECTID as project_id,
+                    SYSTEMID as system_id,
+                    AUTHOR as author,
+                    FILENAME as file_name,
+                    DEFAULTVERSION as default_version
+                FROM AM_SQLLINE_INFO 
+                WHERE SQLLINE IS NOT NULL 
+                AND SQLLINE != ''
+                AND (analysis_status IS NULL OR analysis_status = 'pending')
+                ORDER BY FILENAME, ID ASC
+                LIMIT %s
+            """
+            
+            results = self.source_db.fetch_all(query, (limit,))
+            
+            self.logger.info(f"获取到 {len(results)} 条待分析SQL")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"获取待分析SQL时发生错误: {str(e)}", exc_info=True)
+            return []
+    
+    def extract_sql_by_id(self, sql_id: int) -> Optional[Dict[str, Any]]:
+        """
+        根据ID提取SQL信息
+        
+        Args:
+            sql_id: SQL记录ID
+            
+        Returns:
+            SQL信息字典
+        """
+        try:
+            query = """
+                SELECT 
+                    ID as id,
+                    SQLLINE as sql_text,
+                    TABLENAME as table_name,
+                    OPERATETYPE as operate_type,
+                    PROJECTID as project_id,
+                    SYSTEMID as system_id,
+                    AUTHOR as author,
+                    FILENAME as file_name
+                FROM AM_SQLLINE_INFO 
+                WHERE ID = %s
+            """
+            
+            result = self.source_db.fetch_one(query, (sql_id,))
+            
+            if result:
+                self.logger.info(f"提取到SQL ID {sql_id}: {result.get('sql_text', '')[:50]}...")
+            else:
+                self.logger.warning(f"未找到SQL ID {sql_id}")
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"提取SQL ID {sql_id} 时发生错误: {str(e)}", exc_info=True)
+            return None
+    
+    def extract_table_names(self, sql_text: str, table_name_field: Optional[str] = None) -> tuple:
+        """
+        提取表名
+        
+        Args:
+            sql_text: SQL语句文本
+            table_name_field: TABLENAME字段内容
+            
+        Returns:
+            (表名列表, 处理后的SQL语句)
+        """
+        # 优先使用TABLENAME字段
+        if table_name_field and table_name_field.strip():
+            tables = self.get_table_names_from_field(table_name_field)
+            if tables:
+                self.logger.debug(f"从TABLENAME字段提取到表名: {tables}")
+                return tables, sql_text
+        
+        # 如果TABLENAME字段为空，则从SQL语句中提取
+        if not sql_text or not sql_text.strip():
+            return [], sql_text
+        
+        # 检测是否是shell脚本
+        if self._is_shell_script(sql_text):
+            self.logger.info("检测到shell脚本内容，尝试提取SQL语句")
+            tables, processed_sql, sql_statements = self.extract_and_process_shell_script(sql_text, table_name_field)
+            
+            if sql_statements:
+                self.logger.info(f"从shell脚本中提取到 {len(sql_statements)} 条SQL语句")
+                # 返回提取到的表名和第一个SQL语句作为处理后的SQL
+                return tables, processed_sql
+            else:
+                self.logger.warning("无法从shell脚本中提取SQL，回退到标准SQL处理")
+        
+        try:
+            # 先预处理SQL，移除XML标签
+            preprocessor = SQLPreprocessor(self.logger)
+            processed_sql, preprocess_info = preprocessor.preprocess_sql(sql_text, mode="normalize")
+            
+            if preprocess_info['has_xml_tags']:
+                self.logger.info(f"SQL包含XML标签，预处理后长度: {preprocess_info['processed_length']} (原始: {preprocess_info['original_length']})")
+                self.logger.debug(f"预处理预览: '{preprocess_info.get('original_preview', '')}' -> '{preprocess_info.get('processed_preview', '')}'")
+            
+            # 使用处理后的SQL进行表名提取
+            # 首先尝试使用sqlparse库解析
+            tables = self._extract_tables_with_sqlparse(processed_sql)
+            
+            # 如果sqlparse没有提取到表名，尝试使用正则表达式
+            if not tables:
+                tables = self._extract_tables_with_regex(processed_sql)
+            
+            # 去重并清理表名
+            tables = self._clean_table_names(tables)
+            
+            self.logger.debug(f"从SQL中提取到表名: {tables}")
+            return tables, processed_sql
+            
+        except Exception as e:
+            self.logger.error(f"提取表名时发生错误: {str(e)}", exc_info=True)
+            # 出错时返回空列表和原始SQL
+            return [], sql_text
+    
+    def _extract_tables_with_sqlparse(self, sql_text: str) -> List[str]:
+        """使用sqlparse库提取表名"""
+        tables = []
+        
+        try:
+            parsed = sqlparse.parse(sql_text)
+            
+            for statement in parsed:
+                # 使用sqlparse的get_identifiers方法获取标识符
+                # 但我们需要更精确地提取表名，而不是所有标识符
+                from_clause_found = False
+                
+                for token in statement.tokens:
+                    # 检查是否是FROM关键字
+                    if token.is_keyword and token.value.upper() == 'FROM':
+                        from_clause_found = True
+                        continue
+                    
+                    # 如果是FROM子句后的标识符，可能是表名
+                    if from_clause_found and isinstance(token, sqlparse.sql.Identifier):
+                        # 提取表名（可能包含别名）
+                        table_name = str(token).split()[0]  # 取第一个词作为表名
+                        tables.append(table_name)
+                        from_clause_found = False
+                    
+                    # 检查JOIN子句
+                    elif token.is_keyword and token.value.upper() in ['JOIN', 'INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN']:
+                        # 查找JOIN后的标识符
+                        join_found = True
+                        continue
+                    
+                    # 如果是JOIN后的标识符
+                    elif 'join_found' in locals() and join_found and isinstance(token, sqlparse.sql.Identifier):
+                        table_name = str(token).split()[0]
+                        tables.append(table_name)
+                        join_found = False
+            
+        except Exception as e:
+            self.logger.debug(f"sqlparse解析失败: {str(e)}")
+        
+        return tables
+    
+    def _extract_tables_with_regex(self, sql_text: str) -> List[str]:
+        """使用正则表达式提取表名"""
+        tables = []
+        
+        # 移除注释
+        sql_clean = re.sub(r'--.*?$|/\*.*?\*/', '', sql_text, flags=re.MULTILINE | re.DOTALL)
+        
+        # 1. 先处理所有的JOIN子句（JOIN子句最容易识别）
+        join_pattern = r'\b(?:INNER\s+|LEFT\s+|RIGHT\s+|FULL\s+)?JOIN\s+([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?(?=\s+(?:ON|WHERE|ORDER\s+BY|GROUP\s+BY|HAVING|LIMIT|;|$))'
+        join_matches = re.findall(join_pattern, sql_clean, re.IGNORECASE)
+        tables.extend(join_matches)
+        
+        # 2. 处理FROM子句，使用更智能的方法处理嵌套括号和逗号分隔的表名
+        # 找到所有FROM位置
+        from_positions = [m.start() for m in re.finditer(r'\bFROM\b', sql_clean, re.IGNORECASE)]
+        
+        for from_pos in from_positions:
+            # 提取FROM后面的内容
+            sub_str = sql_clean[from_pos + 4:]  # "FROM"长度是4
+            
+            # 使用更智能的方法处理括号
+            # 检查FROM后面是否立即是括号
+            next_char = sub_str.strip()[0] if sub_str.strip() else ''
+            if next_char == '(':
+                # 这是一个子查询，我们需要跳过整个子查询
+                # 统计括号匹配
+                paren_count = 1
+                pos = 1
+                while paren_count > 0 and pos < len(sub_str):
+                    if sub_str[pos] == '(':
+                        paren_count += 1
+                    elif sub_str[pos] == ')':
+                        paren_count -= 1
+                    pos += 1
+                
+                if paren_count == 0:
+                    # 跳过了整个子查询
+                    # 现在检查子查询后面是否有逗号分隔的表名
+                    # 例如: FROM (子查询) A, table2 B
+                    remaining = sub_str[pos:].strip()
+                    if remaining:
+                        # 继续处理剩余部分
+                        # 我们需要处理逗号分隔的表名
+                        self._extract_tables_from_remaining(remaining, tables)
+                continue
+            
+            # 处理普通FROM子句（没有括号开头）
+            # 我们需要找到WHERE、JOIN、ORDER BY等关键字
+            # 但也要小心处理括号内的子查询
+            
+            # 先找到下一个关键字的开始
+            end_pos = len(sub_str)
+            keywords = ['WHERE', 'JOIN', 'ORDER BY', 'GROUP BY', 'HAVING', 'LIMIT', ';', ')']
+            
+            for kw in keywords:
+                # 注意：我们需要处理括号，所以不能简单地查找关键字
+                # 先找到关键字的位置
+                kw_pattern = r'\b' + re.escape(kw) + r'\b'
+                match = re.search(kw_pattern, sub_str, re.IGNORECASE)
+                if match:
+                    # 检查关键字前面是否有未闭合的括号
+                    text_before = sub_str[:match.start()]
+                    open_paren = text_before.count('(')
+                    close_paren = text_before.count(')')
+                    if open_paren == close_paren:  # 括号平衡
+                        if match.start() < end_pos:
+                            end_pos = match.start()
+            
+            # 提取FROM后面的表名部分
+            tables_part = sub_str[:end_pos].strip()
+            
+            # 处理逗号分隔的表名
+            self._extract_tables_from_from_clause(tables_part, tables)
+        
+        # 3. 专门处理逗号分隔的表（FROM A, B WHERE ... 格式）
+        # 这个正则表达式专门处理逗号分隔的表名，不包括子查询
+        comma_separated_pattern = r'\bFROM\s+((?![\(\s])(?:[a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?(?:\s*,\s*(?![\(\s])(?:[a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?)*)(?=\s+(?:WHERE|JOIN|ORDER\s+BY|GROUP\s+BY|HAVING|LIMIT|;|$))'
+        comma_matches = re.findall(comma_separated_pattern, sql_clean, re.IGNORECASE)
+        
+        for match in comma_matches:
+            if match:
+                # 分割逗号分隔的表名
+                tables_in_match = re.split(r'\s*,\s*', match.strip())
+                for table_item in tables_in_match:
+                    # 提取表名（移除别名）
+                    pattern = r'^\s*([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?\s*$'
+                    table_match = re.match(pattern, table_item.strip(), re.IGNORECASE)
+                    if table_match:
+                        table_name = table_match.group(1)
+                        # 检查是否是有效的表名（不是列名或其他）
+                        if self._is_valid_table_name(table_name) and table_name not in tables:
+                            tables.append(table_name)
+        
+        # 4. 处理子查询中的FROM（深入子查询内部）
+        # 这个模式专门查找子查询内部的FROM
+        subquery_from_pattern = r'FROM\s*\([^)]*?FROM\s+([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?(?=\s+(?:WHERE|JOIN|ORDER\s+BY|GROUP\s+BY|HAVING|LIMIT|;|$|[)]))'
+        subquery_matches = re.findall(subquery_from_pattern, sql_clean, re.IGNORECASE | re.DOTALL)
+        for table_name in subquery_matches:
+            if self._is_valid_table_name(table_name) and table_name not in tables:
+                tables.append(table_name)
+        
+        # 5. 处理逗号分隔的表名（在子查询内部的情况）
+        # 处理像 ") A, BR_ETC_VEHICLE_INFO B WHERE" 这种格式
+        # 这种情况发生在子查询后面跟逗号分隔的表名
+        comma_after_subquery_pattern = r'\)\s+[a-zA-Z_]\w*\s*,\s*([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?(?=\s+(?:WHERE|ON|JOIN|ORDER\s+BY|GROUP\s+BY|HAVING|LIMIT|;|$|\)))'
+        comma_after_subquery_matches = re.findall(comma_after_subquery_pattern, sql_clean, re.IGNORECASE)
+        for table_name in comma_after_subquery_matches:
+            if self._is_valid_table_name(table_name) and table_name not in tables:
+                tables.append(table_name)
+        
+        # 6. 更通用的表名提取模式（作为最后的备选方案）
+        # 查找所有FROM、JOIN或逗号后面的表名
+        generic_table_pattern = r'\b(?:FROM|JOIN|,)\s+([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?(?=\s+(?:WHERE|ON|JOIN|ORDER\s+BY|GROUP\s+BY|HAVING|LIMIT|;|$|\)))'
+        generic_matches = re.findall(generic_table_pattern, sql_clean, re.IGNORECASE)
+        for table_name in generic_matches:
+            if self._is_valid_table_name(table_name) and table_name not in tables:
+                tables.append(table_name)
+        
+        # 7. 处理其他SQL语句类型
+        other_patterns = [
+            # INSERT INTO
+            (r'\bINSERT\s+(?:INTO\s+)?([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?=\s*(?:\([^)]+\)\s+VALUES|VALUES|SELECT|;|$))', 'INSERT'),
+            # UPDATE
+            (r'\bUPDATE\s+([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?=\s+SET)', 'UPDATE'),
+            # DELETE FROM
+            (r'\bDELETE\s+(?:FROM\s+)?([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?=\s+WHERE)', 'DELETE'),
+            # CREATE TABLE
+            (r'\bCREATE\s+(?:TEMPORARY\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?=\s*\()', 'CREATE'),
+            # ALTER TABLE - 扩展关键字列表以支持 ALTER COLUMN 和 SET
+            (r'\bALTER\s+TABLE\s+([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?=\s+(?:ALTER\s+COLUMN|ADD|DROP|MODIFY|CHANGE|RENAME|SET|$))', 'ALTER'),
+            # DROP TABLE
+            (r'\bDROP\s+(?:TEMPORARY\s+)?TABLE\s+(?:IF\s+EXISTS\s+)?([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?=\s*(?:;|$))', 'DROP'),
+            # TRUNCATE TABLE
+            (r'\bTRUNCATE\s+(?:TABLE\s+)?([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?=\s*(?:;|$))', 'TRUNCATE')
+        ]
+        
+        for pattern, _ in other_patterns:
+            matches = re.findall(pattern, sql_clean, re.IGNORECASE)
+            for table_name in matches:
+                if self._is_valid_table_name(table_name) and table_name not in tables:
+                    tables.append(table_name)
+        
+        return tables
+    
+    def _extract_tables_from_remaining(self, remaining_str: str, tables: list):
+        """从剩余字符串中提取表名"""
+        if not remaining_str:
+            return
+        
+        # 处理逗号分隔的表名
+        table_items = re.split(r'\s*,\s*', remaining_str.strip())
+        
+        for item in table_items:
+            if not item.strip():
+                continue
+            
+            # 检查是否是有效的表名（不是列名或其他标识符）
+            pattern = r'^\s*([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?\s*$'
+            table_match = re.match(pattern, item.strip(), re.IGNORECASE)
+            
+            if table_match:
+                table_name = table_match.group(1)
+                if self._is_valid_table_name(table_name) and table_name not in tables:
+                    tables.append(table_name)
+    
+    def _extract_tables_from_from_clause(self, tables_part: str, tables: list):
+        """从FROM子句部分提取表名"""
+        if not tables_part:
+            return
+        
+        # 按逗号分割表名
+        table_items = re.split(r'\s*,\s*', tables_part.strip())
+        
+        for item in table_items:
+            if not item.strip():
+                continue
+            
+            # 提取表名（移除别名）
+            pattern = r'^\s*([a-zA-Z_][\w\.]*|`[^`]+`|\'[^\']+\'|"[^"]+")(?:\s+(?:AS\s+)?[a-zA-Z_]\w*)?\s*$'
+            table_match = re.match(pattern, item.strip(), re.IGNORECASE)
+            
+            if table_match:
+                table_name = table_match.group(1)
+                if self._is_valid_table_name(table_name) and table_name not in tables:
+                    tables.append(table_name)
+    
+    def _is_valid_table_name(self, table_name: str) -> bool:
+        """检查是否是有效的表名"""
+        if not table_name:
+            return False
+        
+        # 移除可能的引号
+        table_name_clean = table_name.strip()
+        
+        # 检查是否以括号开头（如(SELECT），这不是有效的表名
+        if table_name_clean.startswith('('):
+            return False
+            
+        if (table_name_clean.startswith('`') and table_name_clean.endswith('`')) or \
+           (table_name_clean.startswith("'") and table_name_clean.endswith("'")) or \
+           (table_name_clean.startswith('"') and table_name_clean.endswith('"')):
+            table_name_clean = table_name_clean[1:-1]
+        
+        # 再次检查移除引号后是否以括号开头
+        if table_name_clean.startswith('('):
+            return False
+        
+        # 检查是否是无效的字符（如括号）
+        if table_name_clean in ['(', ')']:
+            return False
+        
+        # 检查是否看起来像列名（通常包含点号表示数据库.表名，但单独的列名不应该被提取）
+        # 这里我们假设有效的表名以字母或下划线开头，并且不包含某些特殊字符
+        valid_pattern = r'^[a-zA-Z_][\w\.]*$'
+        if not re.match(valid_pattern, table_name_clean):
+            return False
+        
+        # 排除一些常见的关键字或看起来不像表名的标识符
+        common_non_tables = [
+            'SELECT', 'FROM', 'WHERE', 'JOIN', 'INNER', 'LEFT', 'RIGHT', 'FULL',
+            'OUTER', 'ON', 'AND', 'OR', 'GROUP', 'ORDER', 'BY', 'HAVING',
+            'LIMIT', 'OFFSET', 'UNION', 'ALL', 'DISTINCT', 'AS', 'ASC', 'DESC',
+            'INSERT', 'INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE', 'CREATE',
+            'TABLE', 'ALTER', 'DROP', 'TRUNCATE', 'INDEX', 'PRIMARY', 'KEY',
+            'FOREIGN', 'REFERENCES', 'CONSTRAINT', 'UNIQUE', 'CHECK', 'DEFAULT',
+            'NULL', 'NOT', 'EXISTS', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END'
+        ]
+        
+        table_upper = table_name_clean.upper()
+        if table_upper in common_non_tables:
+            return False
+        
+        # 新增：检查是否是常见的列名
+        common_column_names = [
+            'ID', 'NAME', 'AMOUNT', 'PRICE', 'STATUS', 'DATE', 'TIME', 'COUNT', 
+            'TOTAL', 'VALUE', 'QUANTITY', 'NUMBER', 'SIZE', 'TYPE', 'CODE',
+            'DESCRIPTION', 'REMARK', 'COMMENT', 'NOTE', 'TITLE', 'LABEL',
+            'CREATED_AT', 'UPDATED_AT', 'CREATED_BY', 'UPDATED_BY',
+            'START_DATE', 'END_DATE', 'BEGIN_DATE', 'FINISH_DATE',
+            'USER_ID', 'CUSTOMER_ID', 'PRODUCT_ID', 'ORDER_ID', 'ITEM_ID'
+        ]
+        
+        # 如果表名是单个单词（不包含点号）且是常见列名，则很可能是列名而不是表名
+        if '.' not in table_name_clean and table_upper in common_column_names:
+            return False
+        
+        # 新增：过滤短名称（长度小于3），这些很可能是列别名
+        if '.' not in table_name_clean and len(table_name_clean) < 3:
+            return False
+        
+        # 检查是否看起来像列名（如 table.column）
+        # 我们允许 database.table 格式，但不允许单独的列名
+        if '.' in table_name_clean:
+            parts = table_name_clean.split('.')
+            if len(parts) == 2:
+                # database.table 格式是有效的
+                return True
+            else:
+                # 多个点号可能是无效的
+                return False
+        
+        return True
+    
+    def _clean_table_names(self, table_names: List[str]) -> List[str]:
+        """清理表名
+        
+        注意：不再自动移除数据库前缀，因为可能需要数据库前缀来正确执行SQL
+        改为保留原始表名格式，让后续处理决定如何处理
+        """
+        cleaned = []
+        
+        for table in table_names:
+            if not table:
+                continue
+            
+            # 注意：不再自动移除数据库前缀，因为：
+            # 1. 数据库前缀可能是实际表名的一部分（如带点的表名）
+            # 2. 执行EXPLAIN时需要正确的数据库上下文
+            # 3. 不同的数据库实例可能有不同的数据库名
+            
+            # 只移除外部引号，保留内部引号
+            # 例如：`table-name` -> table-name, 'table' -> table, "table" -> table
+            # 但 db.`table` -> db.`table`（保留数据库前缀和引号）
+            table = table.strip()
+            
+            # 如果整个表名被引号包围，移除外部引号
+            if (table.startswith('`') and table.endswith('`')) or \
+               (table.startswith("'") and table.endswith("'")) or \
+               (table.startswith('"') and table.endswith('"')):
+                table = table[1:-1]
+            
+            # 不再自动分割数据库前缀
+            # 后续处理会根据需要处理数据库前缀
+            
+            if table and table not in cleaned:
+                cleaned.append(table)
+        
+        return cleaned
+    
+    def get_table_names_from_field(self, table_name_field: str) -> List[str]:
+        """
+        从表名字段中提取表名列表
+        
+        Args:
+            table_name_field: 表名字段内容（可能包含多个表名）
+            
+        Returns:
+            表名列表
+        """
+        if not table_name_field:
+            return []
+        
+        # 确保table_name_field是字符串
+        table_name_field_str = str(table_name_field) if table_name_field is not None else ""
+        
+        # 表名可能用逗号、分号或空格分隔
+        separators = [',', ';', ' ', '，', '；']
+        
+        for sep in separators:
+            if sep in table_name_field_str:
+                tables = [t.strip() for t in table_name_field_str.split(sep) if t.strip()]
+                if tables:
+                    return tables
+        
+        # 如果没有分隔符，直接返回
+        return [table_name_field_str.strip()]
+    
+    def update_analysis_status(self, sql_id: int, status: str, error_message: Optional[str] = None) -> bool:
+        """
+        更新分析状态
+        
+        Args:
+            sql_id: SQL记录ID
+            status: 状态（pending/analyzed/failed）
+            error_message: 错误信息
+            
+        Returns:
+            是否成功
+        """
+        try:
+            data = {
+                'analysis_status': status
+            }
+            
+            if error_message:
+                data['error_message'] = error_message
+            
+            # 构建更新语句
+            # 对于analysis_time，如果状态是analyzed，使用NOW()函数
+            set_clause = ', '.join([f"{k} = %s" for k in data.keys()])
+            if status == 'analyzed':
+                set_clause += ', analysis_time = NOW()'
+            
+            values = [data[k] for k in data.keys()]
+            values.append(str(sql_id))  # 转换为字符串以保持类型一致
+            
+            query = f"UPDATE AM_SQLLINE_INFO SET {set_clause} WHERE ID = %s"
+            
+            affected = self.source_db.execute(query, tuple(values))
+            
+            if affected > 0:
+                self.logger.info(f"更新SQL ID {sql_id} 状态为 {status}")
+                return True
+            else:
+                self.logger.warning(f"更新SQL ID {sql_id} 状态失败，未找到记录")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"更新分析状态时发生错误: {str(e)}", exc_info=True)
+            return False
+    
+    def update_sql_issue(self, sql_id: int, issue_type: str, issue_details: Optional[str] = None) -> bool:
+        """
+        更新SQL问题类型和详情
+        
+        Args:
+            sql_id: SQL记录ID
+            issue_type: 问题类型 ('none', 'db2_syntax', 'table_extraction_failed', 'execution_plan_failed', 'other')
+            issue_details: 问题详情
+        
+        Returns:
+            是否成功
+        """
+        try:
+            # 验证问题类型
+            valid_issue_types = ['none', 'db2_syntax', 'table_extraction_failed', 'execution_plan_failed', 'other']
+            if issue_type not in valid_issue_types:
+                self.logger.warning(f"无效的问题类型: {issue_type}，使用 'other'")
+                issue_type = 'other'
+            
+            data = {
+                'sql_issue_type': issue_type
+            }
+            
+            if issue_details:
+                data['sql_issue_details'] = issue_details
+            
+            set_clause = ', '.join([f"{k} = %s" for k in data.keys()])
+            values = [data[k] for k in data.keys()]
+            values.append(str(sql_id))
+            
+            query = f"UPDATE AM_SQLLINE_INFO SET {set_clause} WHERE ID = %s"
+            
+            affected = self.source_db.execute(query, tuple(values))
+            
+            if affected > 0:
+                self.logger.info(f"更新SQL ID {sql_id} 问题类型为 {issue_type}")
+                return True
+            else:
+                self.logger.warning(f"更新SQL ID {sql_id} 问题类型失败，未找到记录")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"更新SQL问题类型时发生错误: {str(e)}", exc_info=True)
+            return False
+    
+    def generate_replaced_sql(self, sql_text: str, metadata_list: Optional[List[Dict[str, Any]]] = None, 
+                            processed_sql: Optional[str] = None, db_alias: Optional[str] = None) -> tuple:
+        """
+        生成替换参数后的SQL
+        
+        Args:
+            sql_text: 原始SQL语句
+            metadata_list: 表元数据列表（用于参数与列的匹配）
+            processed_sql: 已经预处理过的SQL（可选，用于避免重复处理）
+            db_alias: 数据库别名（用于参数替换时获取实际数据值）
+            
+        Returns:
+            (替换后的SQL, 表名列表)
+        """
+        try:
+            # 如果提供了已处理的SQL，则使用它来生成替换后的SQL
+            sql_to_use = processed_sql if processed_sql is not None else sql_text
+            
+            # 使用参数提取器生成替换后的SQL
+            param_extractor = ParamExtractor(
+                sql_to_use, 
+                self.logger, 
+                metadata_list=metadata_list or [],
+                config_manager=self.config_manager,
+                db_alias=db_alias  # 传递数据库别名
+            )
+            replaced_sql, tables = param_extractor.generate_replaced_sql()
+            
+            self.logger.info(f"生成替换参数后的SQL，输入SQL长度: {len(sql_to_use)}，替换后长度: {len(replaced_sql)}")
+            
+            # 如果参数提取器没有提取到表名，使用现有的提取表名方法
+            if not tables:
+                tables, _ = self.extract_table_names(sql_text)
+            
+            return replaced_sql, tables
+            
+        except Exception as e:
+            self.logger.error(f"生成替换参数后的SQL时发生错误: {str(e)}", exc_info=True)
+            return sql_text, []
+    
+    def _is_shell_script(self, content: str) -> bool:
+        """
+        检测内容是否是shell脚本
+        
+        Args:
+            content: 待检测的内容
+            
+        Returns:
+            是否是shell脚本
+        """
+        if not content:
+            return False
+        
+        # 检查常见的shell脚本特征
+        shell_indicators = [
+            r'^#!/bin/(?:ba)?sh',           # shebang
+            r'^\s*mysql\s+',                # mysql命令
+            r'^\s*psql\s+',                 # psql命令
+            r'^\s*sqlplus\s+',              # sqlplus命令
+            r'\becho\s+.*\|\s*(?:mysql|psql|sqlplus)',  # echo管道
+            r'<<\s*(?:EOF|SQL|QUERY)',      # here文档
+            r'\$\w+\s*=\s*[\'"`]',          # 变量赋值
+            r'\$\(.*\)',                     # 命令替换
+        ]
+        
+        for pattern in shell_indicators:
+            if re.search(pattern, content, re.IGNORECASE | re.MULTILINE):
+                return True
+        
+        return False
+    
+    def extract_sql_from_shell_content(self, content: str, source: str = None) -> List[Dict[str, Any]]:
+        """
+        从shell脚本内容提取SQL语句
+        
+        Args:
+            content: shell脚本内容
+            source: 源标识
+            
+        Returns:
+            SQL语句列表，每个元素包含:
+            - sql: SQL语句文本
+            - line_start: 起始行号
+            - line_end: 结束行号
+            - context: 提取上下文
+            - source: 源标识
+        """
+        try:
+            extractor = ShellScriptSQLExtractor(self.logger)
+            return extractor.extract_sql_from_content(content, source)
+        except Exception as e:
+            self.logger.error(f"从shell脚本提取SQL失败: {str(e)}")
+            return []
+    
+    def extract_and_process_shell_script(self, shell_content: str, table_name_field: Optional[str] = None) -> tuple:
+        """
+        提取并处理shell脚本中的SQL语句
+        
+        Args:
+            shell_content: shell脚本内容
+            table_name_field: 表名字段内容（如果提供则优先使用）
+            
+        Returns:
+            (表名列表, 处理后的SQL语句, 提取的SQL列表)
+            注意：如果shell中包含多个SQL语句，处理后的SQL是第一个SQL语句
+        """
+        # 优先使用TABLENAME字段
+        if table_name_field and table_name_field.strip():
+            tables = self.get_table_names_from_field(table_name_field)
+            if tables:
+                self.logger.debug(f"从TABLENAME字段提取到表名: {tables}")
+                # 返回第一个SQL语句（如果有的话）
+                sql_statements = self.extract_sql_from_shell_content(shell_content)
+                processed_sql = sql_statements[0]['sql'] if sql_statements else shell_content
+                return tables, processed_sql, sql_statements
+        
+        # 提取shell脚本中的SQL语句
+        sql_statements = self.extract_sql_from_shell_content(shell_content)
+        
+        if not sql_statements:
+            self.logger.warning("未从shell脚本中提取到SQL语句")
+            return [], shell_content, []
+        
+        # 合并所有提取到的表名
+        all_tables = []
+        for stmt in sql_statements:
+            tables, _ = self.extract_table_names(stmt['sql'])
+            all_tables.extend(tables)
+        
+        # 去重
+        all_tables = list(set(all_tables))
+        
+        # 使用第一个SQL语句作为处理后的SQL（用于后续分析）
+        processed_sql = sql_statements[0]['sql']
+        
+        self.logger.info(f"从shell脚本中提取到 {len(sql_statements)} 条SQL语句，{len(all_tables)} 个唯一表名")
+        return all_tables, processed_sql, sql_statements
+
+    def update_sql_text(self, sql_id: int, sql_text: str) -> bool:
+        """
+        更新SQL语句文本
+        
+        Args:
+            sql_id: SQL记录ID
+            sql_text: 新的SQL语句文本
+            
+        Returns:
+            是否成功
+        """
+        try:
+            query = "UPDATE AM_SQLLINE_INFO SET SQLLINE = %s WHERE ID = %s"
+            affected = self.source_db.execute(query, (sql_text, sql_id))
+            if affected > 0:
+                self.logger.info(f"更新SQL ID {sql_id} 的SQL文本成功")
+                return True
+            else:
+                self.logger.warning(f"更新SQL ID {sql_id} 的SQL文本失败，未找到记录")
+                return False
+        except Exception as e:
+            self.logger.error(f"更新SQL文本时发生错误: {str(e)}", exc_info=True)
+            return False

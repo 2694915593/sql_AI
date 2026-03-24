@@ -1,0 +1,1022 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+元数据收集器模块
+负责收集表的元数据信息
+"""
+
+from typing import List, Dict, Any, Optional
+import re
+from utils.logger import LogMixin
+from utils.db_connector_pymysql import DatabaseManager
+
+
+class MetadataCollector(LogMixin):
+    """元数据收集器"""
+    
+    def __init__(self, config_manager, logger=None):
+        """
+        初始化元数据收集器
+        
+        Args:
+            config_manager: 配置管理器
+            logger: 日志记录器
+        """
+        self.config_manager = config_manager
+        
+        if logger:
+            self.set_logger(logger)
+        
+        self.logger.info("元数据收集器初始化完成")
+    
+    def collect_metadata(self, db_alias: str, table_names: List[str], instance_index: int = 0) -> List[Dict[str, Any]]:
+        """
+        收集表的元数据
+        
+        Args:
+            db_alias: 数据库别名
+            table_names: 表名列表
+            instance_index: 数据库实例索引（从0开始），默认为0表示第一个实例
+            
+        Returns:
+            元数据列表
+        """
+        if not table_names:
+            self.logger.warning("没有表名需要收集元数据")
+            return []
+        
+        try:
+            # 获取目标数据库配置（指定实例索引）
+            target_config = self.config_manager.get_target_db_config(db_alias, instance_index)
+            target_db = DatabaseManager(target_config)
+            
+            metadata_list = []
+            
+            for table_name in table_names:
+                try:
+                    metadata = self._collect_table_metadata(target_db, table_name, target_config['db_type'])
+                    if metadata:
+                        # 添加数据库实例信息
+                        metadata['db_alias'] = db_alias
+                        metadata['instance_alias'] = target_config.get('instance_alias', db_alias)
+                        metadata['instance_index'] = target_config.get('instance_index', 0)
+                        metadata_list.append(metadata)
+                    else:
+                        self.logger.warning(f"表 {table_name} 元数据收集失败")
+                except Exception as e:
+                    self.logger.error(f"收集表 {table_name} 元数据时发生错误: {str(e)}")
+                    # 继续收集其他表
+        
+            self.logger.info(f"成功收集 {len(metadata_list)}/{len(table_names)} 个表的元数据 (实例 {instance_index})")
+            return metadata_list
+            
+        except Exception as e:
+            self.logger.error(f"收集元数据时发生错误: {str(e)}", exc_info=True)
+            return []
+    
+    def collect_metadata_from_all_instances(self, db_alias: str, table_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        从所有数据库实例收集表的元数据
+        
+        Args:
+            db_alias: 数据库别名
+            table_names: 表名列表
+            
+        Returns:
+            元数据列表（包含来自所有实例的元数据）
+        """
+        if not table_names:
+            self.logger.warning("没有表名需要收集元数据")
+            return []
+        
+        all_metadata = []
+        
+        try:
+            # 获取所有数据库配置
+            all_configs = self.config_manager.get_all_target_db_configs(db_alias)
+            
+            if not all_configs:
+                self.logger.error(f"找不到数据库配置: {db_alias}")
+                return []
+            
+            self.logger.info(f"从 {len(all_configs)} 个数据库实例收集元数据: {db_alias}")
+            
+            for i, target_config in enumerate(all_configs):
+                try:
+                    instance_alias = target_config.get('instance_alias', f'{db_alias}:{i}')
+                    instance_index = target_config.get('instance_index', i)
+                    
+                    self.logger.info(f"正在从实例 {instance_alias} 收集元数据")
+                    target_db = DatabaseManager(target_config)
+                    
+                    for table_name in table_names:
+                        try:
+                            metadata = self._collect_table_metadata(target_db, table_name, target_config['db_type'])
+                            if metadata:
+                                # 添加数据库实例信息
+                                metadata['db_alias'] = db_alias
+                                metadata['instance_alias'] = instance_alias
+                                metadata['instance_index'] = instance_index
+                                metadata['database'] = target_config.get('database', '')
+                                all_metadata.append(metadata)
+                                self.logger.debug(f"从实例 {instance_alias} 收集到表 {table_name} 的元数据")
+                            else:
+                                self.logger.warning(f"从实例 {instance_alias} 收集表 {table_name} 元数据失败")
+                        except Exception as e:
+                            self.logger.error(f"从实例 {instance_alias} 收集表 {table_name} 元数据时发生错误: {str(e)}")
+                            # 继续收集其他表
+                
+                except Exception as e:
+                    self.logger.error(f"连接数据库实例 {target_config.get('instance_alias', f'{db_alias}:{i}')} 时发生错误: {str(e)}")
+                    # 继续尝试其他实例
+            
+            self.logger.info(f"成功从 {len(set(m.get('instance_alias') for m in all_metadata))} 个实例收集到 {len(all_metadata)} 个表的元数据")
+            return all_metadata
+            
+        except Exception as e:
+            self.logger.error(f"从所有实例收集元数据时发生错误: {str(e)}", exc_info=True)
+            return []
+    
+    def collect_metadata_until_found(self, db_alias: str, table_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        依次尝试所有数据库实例，直到找到表为止
+        
+        Args:
+            db_alias: 数据库别名
+            table_names: 表名列表
+            
+        Returns:
+            元数据列表（使用第一个找到表的实例）
+        """
+        if not table_names:
+            self.logger.warning("没有表名需要收集元数据")
+            return []
+        
+        try:
+            # 获取所有数据库配置
+            all_configs = self.config_manager.get_all_target_db_configs(db_alias)
+            
+            if not all_configs:
+                self.logger.error(f"找不到数据库配置: {db_alias}")
+                return []
+            
+            self.logger.info(f"依次尝试 {len(all_configs)} 个数据库实例查找表: {table_names}")
+            
+            for i, target_config in enumerate(all_configs):
+                try:
+                    instance_alias = target_config.get('instance_alias', f'{db_alias}:{i}')
+                    instance_index = target_config.get('instance_index', i)
+                    
+                    self.logger.info(f"尝试从实例 {instance_alias} 查找表")
+                    target_db = DatabaseManager(target_config)
+                    
+                    metadata_list = []
+                    all_tables_found = True
+                    
+                    for table_name in table_names:
+                        try:
+                            # 先检查表是否存在
+                            if not self._check_table_exists(target_db, table_name, target_config['db_type']):
+                                self.logger.warning(f"表 {table_name} 在实例 {instance_alias} 中不存在")
+                                all_tables_found = False
+                                break
+                            
+                            # 收集表元数据
+                            metadata = self._collect_table_metadata(target_db, table_name, target_config['db_type'])
+                            if metadata:
+                                # 添加数据库实例信息
+                                metadata['db_alias'] = db_alias
+                                metadata['instance_alias'] = instance_alias
+                                metadata['instance_index'] = instance_index
+                                metadata['database'] = target_config.get('database', '')
+                                metadata_list.append(metadata)
+                            else:
+                                self.logger.warning(f"从实例 {instance_alias} 收集表 {table_name} 元数据失败")
+                                all_tables_found = False
+                                break
+                                
+                        except Exception as e:
+                            self.logger.error(f"从实例 {instance_alias} 处理表 {table_name} 时发生错误: {str(e)}")
+                            all_tables_found = False
+                            break
+                    
+                    # 如果所有表都在当前实例中找到，返回结果
+                    if all_tables_found and metadata_list:
+                        self.logger.info(f"在实例 {instance_alias} 中找到所有表，共 {len(metadata_list)} 个表的元数据")
+                        return metadata_list
+                    else:
+                        self.logger.info(f"表不在实例 {instance_alias} 中，继续尝试下一个实例")
+                
+                except Exception as e:
+                    self.logger.error(f"连接数据库实例 {target_config.get('instance_alias', f'{db_alias}:{i}')} 时发生错误: {str(e)}")
+                    # 继续尝试其他实例
+            
+            self.logger.warning(f"在所有 {len(all_configs)} 个实例中都未找到表: {table_names}")
+            return []
+            
+        except Exception as e:
+            self.logger.error(f"查找表元数据时发生错误: {str(e)}", exc_info=True)
+            return []
+    
+    def _check_table_exists(self, db_manager: DatabaseManager, table_name: str, db_type: str) -> bool:
+        """
+        检查表是否存在
+        
+        Args:
+            db_manager: 数据库管理器
+            table_name: 表名
+            db_type: 数据库类型
+            
+        Returns:
+            表是否存在
+        """
+        try:
+            if db_type == 'mysql':
+                query = "SELECT COUNT(*) as count FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s"
+                result = db_manager.fetch_one(query, (table_name,))
+                return result and result.get('count', 0) > 0
+            elif db_type == 'postgresql':
+                query = "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = %s"
+                result = db_manager.fetch_one(query, (table_name,))
+                return result and result.get('count', 0) > 0
+            else:
+                # 默认尝试查询表，如果失败则认为表不存在
+                try:
+                    db_manager.fetch_one(f"SELECT 1 FROM {table_name} LIMIT 1")
+                    return True
+                except:
+                    return False
+        except Exception as e:
+            self.logger.warning(f"检查表 {table_name} 是否存在时发生错误: {str(e)}")
+            return False
+    
+    def _collect_table_metadata(self, db_manager: DatabaseManager, table_name: str, db_type: str) -> Optional[Dict[str, Any]]:
+        """
+        收集单个表的元数据
+        
+        Args:
+            db_manager: 数据库管理器
+            table_name: 表名
+            db_type: 数据库类型
+            
+        Returns:
+            表元数据字典
+        """
+        metadata = {
+            'table_name': table_name,
+            'ddl': '',
+            'row_count': 0,
+            'is_large_table': False,
+            'columns': [],
+            'indexes': [],
+            'primary_keys': [],
+            'table_exists': True
+        }
+        
+        try:
+            # 首先检查表是否存在
+            if not self._check_table_exists(db_manager, table_name, db_type):
+                self.logger.warning(f"表 {table_name} 不存在，跳过元数据收集")
+                metadata['table_exists'] = False
+                metadata['error'] = f"表 {table_name} 不存在"
+                return metadata
+            
+            # 获取DDL
+            metadata['ddl'] = self._get_table_ddl(db_manager, table_name, db_type)
+            
+            # 获取行数
+            metadata['row_count'] = self._get_table_row_count(db_manager, table_name, db_type)
+            
+            # 判断是否为大表
+            large_table_threshold = self.config_manager.get_processing_config().get('large_table_threshold', 100000)
+            metadata['is_large_table'] = metadata['row_count'] > large_table_threshold
+            
+            # 获取列信息
+            metadata['columns'] = self._get_table_columns(db_manager, table_name, db_type)
+            
+            # 获取索引信息
+            metadata['indexes'] = self._get_table_indexes(db_manager, table_name, db_type)
+            
+            # 获取主键信息
+            metadata['primary_keys'] = self._get_primary_keys(db_manager, table_name, db_type)
+            
+            self.logger.debug(f"收集到表 {table_name} 的元数据: {len(metadata['columns'])} 列, {metadata['row_count']} 行")
+            return metadata
+            
+        except Exception as e:
+            self.logger.error(f"收集表 {table_name} 元数据时发生错误: {str(e)}")
+            metadata['table_exists'] = False
+            metadata['error'] = str(e)
+            return metadata
+    
+    def _get_table_ddl(self, db_manager: DatabaseManager, table_name: str, db_type: str) -> str:
+        """获取表DDL"""
+        try:
+            if db_type == 'mysql':
+                # 使用更简单的方法获取表结构，避免SHOW CREATE TABLE的问题
+                query = """
+                    SELECT 
+                        CONCAT(
+                            'CREATE TABLE ', table_name, ' (',
+                            GROUP_CONCAT(
+                                CONCAT(
+                                    column_name, ' ', column_type,
+                                    IF(is_nullable = 'NO', ' NOT NULL', ''),
+                                    IF(column_default IS NOT NULL, CONCAT(' DEFAULT ', QUOTE(column_default)), ''),
+                                    IF(extra != '', CONCAT(' ', extra), ''),
+                                    IF(column_comment != '', CONCAT(' COMMENT ', QUOTE(column_comment)), '')
+                                )
+                                ORDER BY ordinal_position
+                                SEPARATOR ', '
+                            ),
+                            ')'
+                        ) as ddl
+                    FROM information_schema.columns
+                    WHERE table_schema = DATABASE() 
+                    AND table_name = %s
+                    GROUP BY table_name
+                """
+                result = db_manager.fetch_one(query, (table_name,))
+                if result and 'ddl' in result:
+                    return result['ddl']
+            elif db_type == 'postgresql':
+                query = """
+                    SELECT 
+                        'CREATE TABLE ' || table_name || ' (' || 
+                        string_agg(column_definition, ', ') || 
+                        COALESCE(', ' || constraint_definitions, '') || 
+                        ');' as ddl
+                    FROM (
+                        SELECT 
+                            c.table_name,
+                            c.column_name || ' ' || c.data_type || 
+                            CASE WHEN c.is_nullable = 'NO' THEN ' NOT NULL' ELSE '' END as column_definition
+                        FROM information_schema.columns c
+                        WHERE c.table_name = %s
+                        ORDER BY c.ordinal_position
+                    ) cols
+                    LEFT JOIN (
+                        SELECT 
+                            tc.table_name,
+                            string_agg(
+                                'CONSTRAINT ' || tc.constraint_name || ' ' || 
+                                CASE WHEN tc.constraint_type = 'PRIMARY KEY' THEN 'PRIMARY KEY (' || 
+                                    string_agg(kcu.column_name, ', ') || ')'
+                                WHEN tc.constraint_type = 'FOREIGN KEY' THEN 'FOREIGN KEY (' || 
+                                    string_agg(kcu.column_name, ', ') || ') REFERENCES ' || 
+                                    ccu.table_name || '(' || string_agg(ccu.column_name, ', ') || ')'
+                                ELSE tc.constraint_type
+                                END, ', '
+                            ) as constraint_definitions
+                        FROM information_schema.table_constraints tc
+                        JOIN information_schema.key_column_usage kcu 
+                            ON tc.constraint_name = kcu.constraint_name
+                        JOIN information_schema.constraint_column_usage ccu 
+                            ON tc.constraint_name = ccu.constraint_name
+                        WHERE tc.table_name = %s
+                        GROUP BY tc.table_name, tc.constraint_type
+                    ) cons ON cols.table_name = cons.table_name
+                    GROUP BY cols.table_name, constraint_definitions
+                """
+                result = db_manager.fetch_one(query, (table_name, table_name))
+                if result and 'ddl' in result:
+                    return result['ddl']
+        
+        except Exception as e:
+            self.logger.warning(f"获取表 {table_name} DDL失败: {str(e)}")
+        
+        return f"CREATE TABLE {table_name} (/* 无法获取完整DDL */)"
+    
+    def _get_table_row_count(self, db_manager: DatabaseManager, table_name: str, db_type: str) -> int:
+        """获取表行数"""
+        try:
+            # 使用近似行数查询，避免全表扫描
+            if db_type == 'mysql':
+                query = f"SELECT TABLE_ROWS as row_count FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s"
+                result = db_manager.fetch_one(query, (table_name,))
+                if result and 'row_count' in result:
+                    return int(result['row_count'] or 0)
+            
+            # 如果近似行数不可用，使用COUNT(*)
+            query = f"SELECT COUNT(*) as row_count FROM {table_name}"
+            result = db_manager.fetch_one(query)
+            if result and 'row_count' in result:
+                return int(result['row_count'])
+        
+        except Exception as e:
+            self.logger.warning(f"获取表 {table_name} 行数失败: {str(e)}")
+        
+        return 0
+    
+    def _get_table_columns(self, db_manager: DatabaseManager, table_name: str, db_type: str) -> List[Dict[str, Any]]:
+        """获取表列信息"""
+        columns = []
+        
+        try:
+            if db_type == 'mysql':
+                query = """
+                    SELECT 
+                        COLUMN_NAME as column_name,
+                        DATA_TYPE as data_type,
+                        COLUMN_TYPE as full_type,
+                        IS_NULLABLE as is_nullable,
+                        COLUMN_DEFAULT as column_default,
+                        COLUMN_COMMENT as column_comment,
+                        CHARACTER_MAXIMUM_LENGTH as max_length,
+                        NUMERIC_PRECISION as numeric_precision,
+                        NUMERIC_SCALE as numeric_scale
+                    FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = %s
+                    ORDER BY ORDINAL_POSITION
+                """
+                results = db_manager.fetch_all(query, (table_name,))
+                
+                for row in results:
+                    column_info = {
+                        'name': row['column_name'],
+                        'type': row['data_type'],
+                        'full_type': row['full_type'],
+                        'nullable': row['is_nullable'] == 'YES',
+                        'default': row['column_default'],
+                        'comment': row['column_comment'],
+                        'max_length': row['max_length'],
+                        'numeric_precision': row['numeric_precision'],
+                        'numeric_scale': row['numeric_scale']
+                    }
+                    columns.append(column_info)
+            
+            elif db_type == 'postgresql':
+                query = """
+                    SELECT 
+                        column_name,
+                        data_type,
+                        is_nullable,
+                        column_default,
+                        character_maximum_length,
+                        numeric_precision,
+                        numeric_scale
+                    FROM information_schema.columns
+                    WHERE table_name = %s
+                    ORDER BY ordinal_position
+                """
+                results = db_manager.fetch_all(query, (table_name,))
+                
+                for row in results:
+                    column_info = {
+                        'name': row['column_name'],
+                        'type': row['data_type'],
+                        'full_type': row['data_type'],
+                        'nullable': row['is_nullable'] == 'YES',
+                        'default': row['column_default'],
+                        'comment': '',
+                        'max_length': row['character_maximum_length'],
+                        'numeric_precision': row['numeric_precision'],
+                        'numeric_scale': row['numeric_scale']
+                    }
+                    columns.append(column_info)
+        
+        except Exception as e:
+            self.logger.warning(f"获取表 {table_name} 列信息失败: {str(e)}")
+        
+        return columns
+    
+    def _get_table_indexes(self, db_manager: DatabaseManager, table_name: str, db_type: str) -> List[Dict[str, Any]]:
+        """获取表索引信息"""
+        indexes = []
+        
+        try:
+            if db_type == 'mysql':
+                # 使用information_schema查询索引信息，避免SHOW INDEX的问题
+                query = """
+                    SELECT 
+                        INDEX_NAME as index_name,
+                        COLUMN_NAME as column_name,
+                        NON_UNIQUE as non_unique,
+                        INDEX_TYPE as index_type,
+                        SEQ_IN_INDEX as seq_in_index
+                    FROM information_schema.STATISTICS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = %s
+                    AND INDEX_NAME != 'PRIMARY'
+                    ORDER BY INDEX_NAME, SEQ_IN_INDEX
+                """
+                results = db_manager.fetch_all(query, (table_name,))
+                
+                # 按索引名分组
+                index_dict = {}
+                for row in results:
+                    index_name = row['index_name']
+                    
+                    if index_name not in index_dict:
+                        index_dict[index_name] = {
+                            'name': index_name,
+                            'columns': [],
+                            'unique': row['non_unique'] == 0,
+                            'type': row['index_type']
+                        }
+                    
+                    index_dict[index_name]['columns'].append(row['column_name'])
+                
+                indexes = list(index_dict.values())
+            
+            elif db_type == 'postgresql':
+                query = """
+                    SELECT
+                        i.relname as index_name,
+                        a.attname as column_name,
+                        ix.indisunique as is_unique,
+                        am.amname as index_type
+                    FROM pg_index ix
+                    JOIN pg_class t ON t.oid = ix.indrelid
+                    JOIN pg_class i ON i.oid = ix.indexrelid
+                    JOIN pg_am am ON i.relam = am.oid
+                    JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey)
+                    WHERE t.relname = %s
+                    AND ix.indisprimary = false
+                    ORDER BY i.relname, array_position(ix.indkey, a.attnum)
+                """
+                results = db_manager.fetch_all(query, (table_name,))
+                
+                # 按索引名分组
+                index_dict = {}
+                for row in results:
+                    index_name = row['index_name']
+                    
+                    if index_name not in index_dict:
+                        index_dict[index_name] = {
+                            'name': index_name,
+                            'columns': [],
+                            'unique': row['is_unique'],
+                            'type': row['index_type']
+                        }
+                    
+                    index_dict[index_name]['columns'].append(row['column_name'])
+                
+                indexes = list(index_dict.values())
+        
+        except Exception as e:
+            self.logger.warning(f"获取表 {table_name} 索引信息失败: {str(e)}")
+        
+        return indexes
+    
+    def _get_primary_keys(self, db_manager: DatabaseManager, table_name: str, db_type: str) -> List[str]:
+        """获取主键列"""
+        primary_keys = []
+        
+        try:
+            if db_type == 'mysql':
+                query = """
+                    SELECT COLUMN_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = %s
+                    AND CONSTRAINT_NAME = 'PRIMARY'
+                    ORDER BY ORDINAL_POSITION
+                """
+                results = db_manager.fetch_all(query, (table_name,))
+                primary_keys = [row['COLUMN_NAME'] for row in results]
+            
+            elif db_type == 'postgresql':
+                query = """
+                    SELECT a.attname as column_name
+                    FROM pg_index ix
+                    JOIN pg_class t ON t.oid = ix.indrelid
+                    JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey)
+                    WHERE t.relname = %s
+                    AND ix.indisprimary = true
+                    ORDER BY array_position(ix.indkey, a.attnum)
+                """
+                results = db_manager.fetch_all(query, (table_name,))
+                primary_keys = [row['column_name'] for row in results]
+        
+        except Exception as e:
+            self.logger.warning(f"获取表 {table_name} 主键信息失败: {str(e)}")
+        
+        return primary_keys
+    
+    def _preprocess_sql_for_type_detection(self, sql_text: str) -> str:
+        """
+        预处理SQL以用于类型检测，移除XML标签、CDATA标记等
+        
+        Args:
+            sql_text: 原始SQL文本
+            
+        Returns:
+            预处理后的SQL文本
+        """
+        if not sql_text or not sql_text.strip():
+            return ""
+        
+        try:
+            import re
+            result = sql_text
+            
+            # 1. 处理CDATA部分，保留内容
+            result = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', result, flags=re.DOTALL)
+            
+            # 2. 移除XML标签
+            result = re.sub(r'<[^>]+>', ' ', result)
+            
+            # 3. 移除自闭合标签
+            result = re.sub(r'<[^>]+/>', ' ', result)
+            
+            # 4. 移除SQL注释
+            result = self._strip_sql_comments(result)
+            
+            # 5. 压缩多余空格
+            result = re.sub(r'\s+', ' ', result).strip()
+            
+            return result
+            
+        except Exception as e:
+            self.logger.warning(f"预处理SQL时发生错误: {str(e)}")
+            # 出错时尝试简单的清理
+            import re
+            simple_cleaned = re.sub(r'<[^>]+>', ' ', sql_text)
+            simple_cleaned = re.sub(r'\s+', ' ', simple_cleaned).strip()
+            return simple_cleaned
+    
+    def detect_sql_type(self, sql_text: str) -> str:
+        """
+        检测SQL语句类型
+        
+        Args:
+            sql_text: SQL语句文本
+            
+        Returns:
+            SQL类型: DML, DDL, DCL, TCL 或 UNKNOWN
+        """
+        if not sql_text or not sql_text.strip():
+            return "UNKNOWN"
+        
+        # 首先预处理SQL，移除XML标签等
+        processed_sql = self._preprocess_sql_for_type_detection(sql_text)
+        if not processed_sql or not processed_sql.strip():
+            return "UNKNOWN"
+        
+        sql_upper = processed_sql.strip().upper()
+        
+        # DML语句 (数据操作语言)
+        dml_keywords = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'MERGE', 'CALL', 'EXPLAIN']
+        for keyword in dml_keywords:
+            if sql_upper.startswith(keyword):
+                return "DML"
+        
+        # DDL语句 (数据定义语言)
+        ddl_keywords = ['CREATE', 'ALTER', 'DROP', 'TRUNCATE', 'RENAME', 'COMMENT']
+        for keyword in ddl_keywords:
+            if sql_upper.startswith(keyword):
+                return "DDL"
+        
+        # DCL语句 (数据控制语言)
+        dcl_keywords = ['GRANT', 'REVOKE']
+        for keyword in dcl_keywords:
+            if sql_upper.startswith(keyword):
+                return "DCL"
+        
+        # TCL语句 (事务控制语言)
+        tcl_keywords = ['COMMIT', 'ROLLBACK', 'SAVEPOINT', 'SET TRANSACTION']
+        for keyword in tcl_keywords:
+            if sql_upper.startswith(keyword):
+                return "TCL"
+        
+        return "UNKNOWN"
+
+    def _strip_sql_comments(self, sql_text: str) -> str:
+        """移除SQL注释，便于做类型检测和EXPLAIN拼装"""
+        if not sql_text:
+            return ""
+
+        # 移除 /* ... */ 注释
+        text = re.sub(r'/\*.*?\*/', ' ', sql_text, flags=re.S)
+        # 移除 -- 注释（到行尾）
+        text = re.sub(r'--[^\r\n]*', ' ', text)
+        # 移除 # 注释（MySQL风格）
+        text = re.sub(r'#[^\r\n]*', ' ', text)
+
+        return text.strip()
+
+    def _normalize_sql_for_explain(self, sql_text: str) -> str:
+        """标准化SQL以用于EXPLAIN（去注释、去末尾分号、压缩空白）"""
+        cleaned = self._strip_sql_comments(sql_text)
+        cleaned = cleaned.strip().rstrip(';').strip()
+        # 压缩连续空白，减少日志和网络长度
+        cleaned = re.sub(r'\s+', ' ', cleaned)
+        return cleaned
+
+    def _is_explain_supported_sql(self, sql_text: str) -> bool:
+        """仅对白名单语句执行EXPLAIN，避免无效/高风险语句"""
+        if not sql_text:
+            return False
+
+        sql_upper = sql_text.strip().upper()
+        explainable_prefixes = ('SELECT', 'INSERT', 'UPDATE', 'DELETE', 'REPLACE', 'WITH')
+        return sql_upper.startswith(explainable_prefixes)
+
+    def _summarize_execution_plan(self, execution_plan: Any, db_type: str) -> Dict[str, Any]:
+        """提炼执行计划关键摘要，便于下游评审和提示词压缩"""
+        summary = {
+            'has_full_scan': False,
+            'estimated_rows': 0,
+            'key_used': False,
+            'access_types': [],
+            'warnings': []
+        }
+
+        try:
+            if db_type != 'mysql' or not isinstance(execution_plan, list):
+                return summary
+
+            access_types = set()
+            total_rows = 0
+            key_used = False
+            warnings = []
+
+            for row in execution_plan:
+                if not isinstance(row, dict):
+                    continue
+
+                access_type = str(row.get('type', '') or '').lower()
+                if access_type:
+                    access_types.add(access_type)
+
+                rows = row.get('rows')
+                try:
+                    total_rows += int(rows) if rows is not None else 0
+                except (TypeError, ValueError):
+                    pass
+
+                key_name = row.get('key')
+                if key_name not in (None, '', 'NULL'):
+                    key_used = True
+
+                extra = str(row.get('Extra', '') or '').lower()
+                if 'using temporary' in extra:
+                    warnings.append('存在Using temporary')
+                if 'using filesort' in extra:
+                    warnings.append('存在Using filesort')
+
+            summary['access_types'] = sorted(access_types)
+            summary['estimated_rows'] = total_rows
+            summary['key_used'] = key_used
+            summary['has_full_scan'] = ('all' in access_types)
+
+            # 去重并保持顺序
+            dedup_warnings = []
+            seen = set()
+            for warning in warnings:
+                if warning not in seen:
+                    seen.add(warning)
+                    dedup_warnings.append(warning)
+            summary['warnings'] = dedup_warnings
+
+            if summary['has_full_scan']:
+                summary['warnings'].append('可能存在全表扫描(type=ALL)')
+            if not key_used:
+                summary['warnings'].append('执行计划未使用索引(key为空)')
+
+        except Exception as e:
+            self.logger.warning(f"提炼执行计划摘要失败: {str(e)}")
+
+        return summary
+    
+    def _format_execution_plan(self, execution_plan: Any, db_type: str) -> str:
+        """
+        格式化执行计划，转换为易读的文本格式
+        
+        Args:
+            execution_plan: 原始执行计划数据
+            db_type: 数据库类型
+            
+        Returns:
+            格式化后的执行计划文本
+        """
+        if not execution_plan:
+            return "无执行计划数据"
+        
+        try:
+            if db_type == 'mysql':
+                # MySQL执行计划通常是一个字典列表
+                if isinstance(execution_plan, list):
+                    formatted_lines = []
+                    for i, plan_item in enumerate(execution_plan):
+                        # 检查是否是字典格式
+                        if isinstance(plan_item, dict):
+                            # 处理MySQL EXPLAIN的输出
+                            if 'EXPLAIN' in plan_item:
+                                # 这是MySQL 8.0+的EXPLAIN FORMAT=TREE输出
+                                explain_text = plan_item['EXPLAIN']
+                                formatted_lines.append(explain_text)
+                            else:
+                                # 传统MySQL EXPLAIN表格格式
+                                formatted_lines.append(f"行 {i+1}:")
+                                for key, value in plan_item.items():
+                                    formatted_lines.append(f"  {key}: {value}")
+                        else:
+                            formatted_lines.append(str(plan_item))
+                    
+                    return '\n'.join(formatted_lines)
+                elif isinstance(execution_plan, dict):
+                    # 单个字典
+                    formatted_lines = []
+                    for key, value in execution_plan.items():
+                        formatted_lines.append(f"{key}: {value}")
+                    return '\n'.join(formatted_lines)
+                else:
+                    return str(execution_plan)
+            
+            elif db_type == 'postgresql':
+                # PostgreSQL执行计划可能是JSON
+                if isinstance(execution_plan, dict):
+                    # 尝试提取关键信息
+                    formatted_lines = ["PostgreSQL执行计划:"]
+                    
+                    # PostgreSQL EXPLAIN (FORMAT JSON) 返回复杂的JSON结构
+                    # 简单处理：转换为可读格式
+                    import json
+                    try:
+                        formatted_lines.append(json.dumps(execution_plan, ensure_ascii=False, indent=2))
+                    except:
+                        formatted_lines.append(str(execution_plan))
+                    
+                    return '\n'.join(formatted_lines)
+                else:
+                    return str(execution_plan)
+            
+            else:
+                # 其他数据库类型
+                return str(execution_plan)
+                
+        except Exception as e:
+            self.logger.warning(f"格式化执行计划时发生错误: {str(e)}")
+            return f"原始执行计划: {execution_plan}"
+    
+    def get_execution_plan(self, db_alias: str, dynamic_sql: str, instance_index: int = 0) -> Dict[str, Any]:
+        """
+        获取SQL执行计划
+        
+        Args:
+            db_alias: 数据库别名
+            dynamic_sql: 动态SQL语句（参数已替换）
+            instance_index: 数据库实例索引（从0开始），默认为0表示第一个实例
+            
+        Returns:
+            执行计划信息
+        """
+        try:
+            normalized_sql = self._normalize_sql_for_explain(dynamic_sql)
+
+            if not normalized_sql:
+                return {
+                    'sql_type': 'UNKNOWN',
+                    'has_execution_plan': False,
+                    'message': 'SQL为空，无法获取执行计划'
+                }
+
+            # 检测SQL类型，只有DML语句才有执行计划
+            sql_type = self.detect_sql_type(normalized_sql)
+            
+            if sql_type != 'DML':
+                self.logger.info(f"SQL类型为 {sql_type}，无需获取执行计划")
+                return {
+                    'sql_type': sql_type,
+                    'has_execution_plan': False,
+                    'message': f'SQL类型为 {sql_type}，无需获取执行计划'
+                }
+
+            if not self._is_explain_supported_sql(normalized_sql):
+                return {
+                    'sql_type': sql_type,
+                    'has_execution_plan': False,
+                    'message': '当前SQL类型不支持执行EXPLAIN'
+                }
+            
+            # 获取目标数据库配置（指定实例索引）
+            target_config = self.config_manager.get_target_db_config(db_alias, instance_index)
+            
+            # 根据数据库类型执行不同的EXPLAIN命令
+            db_type = target_config.get('db_type', 'mysql')
+            
+            # 创建数据库连接
+            conn = None
+            try:
+                # 导入create_db_connection函数
+                from utils.db_connector_pymysql import create_db_connection
+                conn = create_db_connection(target_config)
+                
+                # 对于MySQL，移除EXTENDED关键字，因为某些版本不支持
+                # 同时确保SQL语句是有效的
+                explain_sql = None
+                if db_type == 'mysql':
+                    # MySQL使用EXPLAIN（不包含EXTENDED）
+                    clean_sql = normalized_sql
+                    explain_sql = f"EXPLAIN {clean_sql}"
+                elif db_type == 'postgresql':
+                    # PostgreSQL使用EXPLAIN (FORMAT JSON)
+                    explain_sql = f"EXPLAIN (FORMAT JSON) {normalized_sql}"
+                else:
+                    # 其他数据库使用普通EXPLAIN
+                    explain_sql = f"EXPLAIN {normalized_sql}"
+                
+                self.logger.info(f"执行EXPLAIN语句: {explain_sql[:200]}... (实例 {instance_index})")
+                
+                with conn.cursor() as cursor:
+                    cursor.execute(explain_sql)
+                    
+                    # 获取执行计划结果
+                    execution_plan = None
+                    if db_type == 'postgresql':
+                        # PostgreSQL返回JSON格式
+                        result = cursor.fetchone()
+                        if result:
+                            # result可能是元组或字典
+                            if isinstance(result, dict):
+                                execution_plan = result
+                            elif isinstance(result, (list, tuple)) and len(result) > 0:
+                                execution_plan = result[0]
+                            else:
+                                execution_plan = {}
+                        else:
+                            execution_plan = {}
+                    else:
+                        # MySQL和其他数据库返回表格格式
+                        columns = []
+                        if cursor.description:
+                            columns = [desc[0] for desc in cursor.description]
+                        
+                        rows = cursor.fetchall()
+                        
+                        # 将结果转换为字典列表
+                        execution_plan = []
+                        for row in rows:
+                            # 如果row已经是字典（如使用DictCursor），直接使用
+                            if isinstance(row, dict):
+                                execution_plan.append(row)
+                            else:
+                                # 否则转换为字典
+                                row_dict = {}
+                                # 处理不同的行格式
+                                if hasattr(row, '_asdict'):
+                                    # 如果是namedtuple
+                                    row_dict = row._asdict()
+                                elif isinstance(row, (list, tuple)):
+                                    # 如果是列表或元组
+                                    for i, col in enumerate(columns):
+                                        if i < len(row):
+                                            row_dict[col] = row[i]
+                                        else:
+                                            row_dict[col] = None
+                                else:
+                                    # 尝试其他方式
+                                    try:
+                                        row_dict = dict(row)
+                                    except (TypeError, ValueError):
+                                        # 无法转换，创建空字典
+                                        row_dict = {}
+                                
+                                execution_plan.append(row_dict)
+                    
+                    self.logger.info(f"成功获取执行计划，结果类型: {type(execution_plan)}, 长度: {len(execution_plan) if isinstance(execution_plan, (list, tuple)) else 'N/A'} (实例 {instance_index})")
+                    
+                    # 解析和格式化执行计划
+                    formatted_plan = self._format_execution_plan(execution_plan, db_type)
+                    plan_summary = self._summarize_execution_plan(execution_plan, db_type)
+                    
+                    # 添加实例信息
+                    result = {
+                        'sql_type': sql_type,
+                        'has_execution_plan': True,
+                        'execution_plan': execution_plan,
+                        'formatted_plan': formatted_plan,
+                        'plan_summary': plan_summary,
+                        'db_type': db_type,
+                        'explain_sql': explain_sql,
+                        'row_count': len(execution_plan) if isinstance(execution_plan, (list, tuple)) else 0,
+                        'db_alias': db_alias,
+                        'instance_index': instance_index,
+                        'instance_alias': target_config.get('instance_alias', f'{db_alias}:{instance_index}')
+                    }
+                    
+                    return result
+                    
+            finally:
+                if conn:
+                    try:
+                        conn.close()
+                    except:
+                        pass
+        
+        except Exception as e:
+            self.logger.error(f"获取执行计划时发生错误: {str(e)}", exc_info=True)
+            return {
+                'sql_type': self.detect_sql_type(dynamic_sql) if dynamic_sql else 'UNKNOWN',
+                'has_execution_plan': False,
+                'error': str(e),
+                'message': f'获取执行计划失败: {str(e)}',
+                'db_alias': db_alias,
+                'instance_index': instance_index
+            }
+
+
+

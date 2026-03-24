@@ -1,0 +1,500 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+结果处理器模块
+负责处理分析结果并存储到数据库
+"""
+
+import json
+from typing import Dict, Any, List, Optional
+from utils.logger import LogMixin
+from data_collector.sql_extractor import SQLExtractor
+
+
+class ResultProcessor(LogMixin):
+    """结果处理器"""
+    
+    def __init__(self, config_manager, logger=None):
+        """
+        初始化结果处理器
+        
+        Args:
+            config_manager: 配置管理器
+            logger: 日志记录器
+        """
+        self.config_manager = config_manager
+        
+        if logger:
+            self.set_logger(logger)
+        
+        # 初始化SQL提取器用于更新状态
+        self.sql_extractor = SQLExtractor(config_manager, logger)
+        
+        self.logger.info("结果处理器初始化完成")
+    
+    def process_result(self, sql_id: int, analysis_result: Dict[str, Any], 
+                      metadata: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        处理分析结果
+        
+        Args:
+            sql_id: SQL记录ID
+            analysis_result: 分析结果
+            metadata: 表元数据
+            
+        Returns:
+            处理后的结果
+        """
+        try:
+            self.logger.info(f"开始处理SQL ID {sql_id} 的分析结果")
+            
+            # 检查分析结果是否成功
+            if not analysis_result.get('success', False):
+                error_message = analysis_result.get('error', '分析失败')
+                self.update_error_status(sql_id, error_message)
+                return {
+                    'success': False,
+                    'sql_id': sql_id,
+                    'error': error_message
+                }
+            
+            # 准备存储数据
+            storage_data = self._prepare_storage_data(analysis_result, metadata)
+            
+            # 存储分析结果
+            success = self._store_analysis_result(sql_id, storage_data)
+            
+            if success:
+                # 更新状态为已分析
+                self.sql_extractor.update_analysis_status(sql_id, 'analyzed')
+                
+                result = {
+                    'success': True,
+                    'sql_id': sql_id,
+                    'score': analysis_result.get('score', 0),
+                    'suggestion_count': len(analysis_result.get('suggestions', [])),
+                    'storage_success': True
+                }
+                
+                self.logger.info(f"SQL ID {sql_id} 分析结果处理完成，评分: {result['score']}")
+                return result
+            else:
+                error_message = "存储分析结果失败"
+                self.update_error_status(sql_id, error_message)
+                return {
+                    'success': False,
+                    'sql_id': sql_id,
+                    'error': error_message
+                }
+                
+        except Exception as e:
+            error_message = f"处理分析结果时发生错误: {str(e)}"
+            self.logger.error(error_message, exc_info=True)
+            self.update_error_status(sql_id, error_message)
+            return {
+                'success': False,
+                'sql_id': sql_id,
+                'error': error_message
+            }
+    
+    def _prepare_storage_data(self, analysis_result: Dict[str, Any], 
+                             metadata: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        准备存储数据
+        
+        Args:
+            analysis_result: 分析结果
+            metadata: 表元数据
+            
+        Returns:
+            准备存储的数据
+        """
+        # 提取关键信息
+        raw_result = analysis_result.get('analysis_result', {})
+        suggestions = analysis_result.get('suggestions', [])
+        score = analysis_result.get('score', 0)
+        
+        # 提取新的分析字段
+        sql_injection_analysis = analysis_result.get('sql_injection_analysis', {})
+        execution_efficiency = analysis_result.get('execution_efficiency', {})
+        critical_issues = analysis_result.get('critical_issues', [])
+        summary = analysis_result.get('summary', '')
+        
+        # 只提取我们需要的内容，不存储完整的原始报文
+        # 1. 分析摘要（扩展以包含新的评分维度）
+        analysis_summary = {
+            'score': score,
+            'suggestion_count': len(suggestions),
+            'has_critical_issues': self._has_critical_issues(suggestions),
+            'has_warnings': self._has_warnings(suggestions),
+            'has_optimization_suggestions': self._has_optimization_suggestions(suggestions),
+            # 新的评分维度
+            'injection_score': analysis_result.get('injection_score', 0),
+            'efficiency_score': analysis_result.get('efficiency_score', 0),
+            'sql_injection_risk': sql_injection_analysis.get('risk_level', '未知') if isinstance(sql_injection_analysis, dict) else '未知'
+        }
+        
+        # 2. 详细分析（优先使用summary，如果没有则提取文本内容）
+        if summary:
+            detailed_analysis = summary
+        else:
+            detailed_analysis = self._extract_detailed_analysis(raw_result)
+        
+        # 3. 建议（清理后的建议）
+        cleaned_suggestions = self._clean_suggestions(suggestions)
+        
+        # 4. 元数据摘要
+        metadata_summary = self._create_metadata_summary(metadata)
+        
+        # 5. 分类建议
+        categorized_suggestions = self._categorize_suggestions(cleaned_suggestions)
+        
+        # 6. SQL注入分析（如果存在）
+        sql_injection_data = {}
+        if sql_injection_analysis and isinstance(sql_injection_analysis, dict):
+            sql_injection_data = {
+                'has_injection_risk': sql_injection_analysis.get('has_injection_risk', False),
+                'risk_level': sql_injection_analysis.get('risk_level', '未知'),
+                'description': sql_injection_analysis.get('description', '')
+            }
+        
+        # 7. 执行效率分析（如果存在）
+        execution_efficiency_data = {}
+        if execution_efficiency and isinstance(execution_efficiency, dict):
+            execution_efficiency_data = {
+                'score': execution_efficiency.get('score', 0),
+                'description': execution_efficiency.get('description', ''),
+                'key_issues': execution_efficiency.get('key_issues', [])
+            }
+        
+        # 构建精简的存储数据结构
+        storage_data = {
+            'analysis_summary': analysis_summary,
+            'detailed_analysis': detailed_analysis,
+            'suggestions': cleaned_suggestions,
+            'metadata_summary': metadata_summary,
+            'categorized_suggestions': categorized_suggestions,
+            'critical_issues': critical_issues
+        }
+        
+        # 添加新的分析字段（如果存在）
+        if sql_injection_data:
+            storage_data['sql_injection_analysis'] = sql_injection_data
+        
+        if execution_efficiency_data:
+            storage_data['execution_efficiency'] = execution_efficiency_data
+        
+        return storage_data
+    
+    def _extract_detailed_analysis(self, raw_result: Dict[str, Any]) -> str:
+        """
+        从原始结果中提取详细分析文本
+        
+        Args:
+            raw_result: 原始分析结果
+            
+        Returns:
+            提取的详细分析文本
+        """
+        try:
+            # 如果包含detailed_analysis.RSP_BODY.answer，提取它
+            if 'detailed_analysis' in raw_result:
+                detailed = raw_result['detailed_analysis']
+                if 'RSP_BODY' in detailed and 'answer' in detailed['RSP_BODY']:
+                    answer_text = detailed['RSP_BODY']['answer']
+                    # 清理文本：移除多余的引号和转义字符
+                    if answer_text.startswith('"') and answer_text.endswith('"'):
+                        answer_text = answer_text[1:-1]
+                    answer_text = answer_text.replace('\\n', '\n').replace('\\"', '"')
+                    return answer_text
+            
+            # 如果没有找到，尝试其他字段
+            if 'analysis_text' in raw_result:
+                return str(raw_result['analysis_text'])
+            elif 'result' in raw_result:
+                return str(raw_result['result'])
+            elif 'data' in raw_result:
+                return str(raw_result['data'])
+            else:
+                # 如果没有详细分析，返回空字符串
+                return ""
+                
+        except Exception as e:
+            self.logger.warning(f"提取详细分析时发生错误: {str(e)}")
+            return ""
+    
+    def _clean_suggestions(self, suggestions: List[Any]) -> List[str]:
+        """
+        清理建议列表
+        
+        Args:
+            suggestions: 原始建议列表
+            
+        Returns:
+            清理后的建议列表
+        """
+        cleaned = []
+        
+        for suggestion in suggestions:
+            if isinstance(suggestion, dict):
+                # 如果是字典，尝试提取文本
+                if 'text' in suggestion:
+                    cleaned.append(str(suggestion['text']))
+                elif 'suggestion' in suggestion:
+                    cleaned.append(str(suggestion['suggestion']))
+                elif 'recommendation' in suggestion:
+                    cleaned.append(str(suggestion['recommendation']))
+                else:
+                    # 否则转换为字符串
+                    cleaned.append(str(suggestion))
+            elif isinstance(suggestion, str):
+                # 清理字符串建议
+                clean_suggestion = suggestion.strip()
+                if clean_suggestion:
+                    # 移除Markdown格式
+                    clean_suggestion = clean_suggestion.replace('**', '').replace('`', '')
+                    cleaned.append(clean_suggestion)
+            else:
+                # 其他类型转换为字符串
+                cleaned.append(str(suggestion))
+        
+        # 去重
+        unique_suggestions = []
+        seen = set()
+        for suggestion in cleaned:
+            if suggestion and suggestion not in seen:
+                seen.add(suggestion)
+                unique_suggestions.append(suggestion)
+        
+        return unique_suggestions
+    
+    def _has_critical_issues(self, suggestions: List[Any]) -> bool:
+        """检查是否有严重问题"""
+        critical_keywords = ['严重', 'critical', 'error', 'bug', '错误', '致命', 'fatal']
+        return self._check_suggestions_for_keywords(suggestions, critical_keywords)
+    
+    def _has_warnings(self, suggestions: List[Any]) -> bool:
+        """检查是否有警告"""
+        warning_keywords = ['警告', 'warning', '注意', 'caution', 'alert']
+        return self._check_suggestions_for_keywords(suggestions, warning_keywords)
+    
+    def _has_optimization_suggestions(self, suggestions: List[Any]) -> bool:
+        """检查是否有优化建议"""
+        optimization_keywords = ['优化', 'optimization', 'improve', 'enhance', '建议', 'suggestion']
+        return self._check_suggestions_for_keywords(suggestions, optimization_keywords)
+    
+    def _check_suggestions_for_keywords(self, suggestions: List[Any], keywords: List[str]) -> bool:
+        """检查建议中是否包含关键词"""
+        for suggestion in suggestions:
+            if isinstance(suggestion, dict):
+                suggestion_text = json.dumps(suggestion).lower()
+            else:
+                suggestion_text = str(suggestion).lower()
+            
+            for keyword in keywords:
+                if keyword.lower() in suggestion_text:
+                    return True
+        return False
+    
+    def _create_metadata_summary(self, metadata: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """创建元数据摘要"""
+        if not metadata:
+            return {}
+        
+        summary = {
+            'table_count': len(metadata),
+            'total_rows': 0,
+            'large_tables': 0,
+            'total_columns': 0,
+            'total_indexes': 0,
+            'tables': []
+        }
+        
+        for table_meta in metadata:
+            summary['total_rows'] += table_meta.get('row_count', 0)
+            if table_meta.get('is_large_table', False):
+                summary['large_tables'] += 1
+            summary['total_columns'] += len(table_meta.get('columns', []))
+            summary['total_indexes'] += len(table_meta.get('indexes', []))
+            
+            table_summary = {
+                'table_name': table_meta.get('table_name', ''),
+                'row_count': table_meta.get('row_count', 0),
+                'is_large_table': table_meta.get('is_large_table', False),
+                'column_count': len(table_meta.get('columns', [])),
+                'index_count': len(table_meta.get('indexes', [])),
+                'has_primary_key': len(table_meta.get('primary_keys', [])) > 0
+            }
+            summary['tables'].append(table_summary)
+        
+        return summary
+    
+    def _categorize_suggestions(self, suggestions: List[Any]) -> Dict[str, List[Any]]:
+        """分类建议"""
+        categorized = {
+            'performance': [],
+            'security': [],
+            'maintainability': [],
+            'correctness': [],
+            'other': []
+        }
+        
+        for suggestion in suggestions:
+            category = self._determine_suggestion_category(suggestion)
+            categorized[category].append(suggestion)
+        
+        # 移除空类别
+        return {k: v for k, v in categorized.items() if v}
+    
+    def _determine_suggestion_category(self, suggestion: Any) -> str:
+        """确定建议类别"""
+        if isinstance(suggestion, dict):
+            suggestion_text = json.dumps(suggestion).lower()
+        else:
+            suggestion_text = str(suggestion).lower()
+        
+        # 性能相关关键词
+        performance_keywords = ['性能', 'performance', '慢', 'slow', '索引', 'index', '查询', 'query', 
+                               '优化', 'optimize', '执行计划', 'explain']
+        # 安全相关关键词
+        security_keywords = ['安全', 'security', '注入', 'injection', '权限', 'permission', '密码', 'password',
+                            '加密', 'encrypt', '敏感', 'sensitive']
+        # 可维护性相关关键词
+        maintainability_keywords = ['维护', 'maintain', '可读', 'readable', '注释', 'comment', '命名', 'naming',
+                                   '结构', 'structure', '规范', 'standard']
+        # 正确性相关关键词
+        correctness_keywords = ['错误', 'error', 'bug', '正确', 'correct', '逻辑', 'logic', '数据', 'data',
+                               '一致', 'consistent', '完整', 'integrity']
+        
+        if any(keyword in suggestion_text for keyword in performance_keywords):
+            return 'performance'
+        elif any(keyword in suggestion_text for keyword in security_keywords):
+            return 'security'
+        elif any(keyword in suggestion_text for keyword in maintainability_keywords):
+            return 'maintainability'
+        elif any(keyword in suggestion_text for keyword in correctness_keywords):
+            return 'correctness'
+        else:
+            return 'other'
+    
+    def _store_analysis_result(self, sql_id: int, storage_data: Dict[str, Any]) -> bool:
+        """
+        存储分析结果到数据库
+        
+        Args:
+            sql_id: SQL记录ID
+            storage_data: 存储数据
+            
+        Returns:
+            是否成功
+        """
+        try:
+            # 将数据转换为JSON字符串
+            json_data = json.dumps(storage_data, ensure_ascii=False, indent=2)
+            
+            # 更新数据库记录
+            # 注意：analysis_time应该使用MySQL的NOW()函数，而不是字符串'NOW()'
+            data = {
+                'analysis_result': json_data,
+                'analysis_status': 'analyzed'
+            }
+            
+            # 构建更新语句 - 注意：实际表字段名是ID（大写）
+            # 对于analysis_time，我们使用MySQL的NOW()函数
+            set_clause = ', '.join([f"{k} = %s" for k in data.keys()])
+            set_clause += ', analysis_time = NOW()'
+            values = [data[k] for k in data.keys()]
+            values.append(sql_id)
+            
+            query = f"UPDATE am_solline_info SET {set_clause} WHERE ID = %s"
+            
+            affected = self.sql_extractor.source_db.execute(query, tuple(values))
+            
+            if affected > 0:
+                self.logger.info(f"SQL ID {sql_id} 分析结果存储成功")
+                
+                # 可选：存储详细分析结果到详情表
+                self._store_detailed_analysis(sql_id, storage_data)
+                
+                return True
+            else:
+                self.logger.warning(f"SQL ID {sql_id} 分析结果存储失败，未找到记录")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"存储分析结果时发生错误: {str(e)}", exc_info=True)
+            return False
+    
+    def _store_detailed_analysis(self, sql_id: int, storage_data: Dict[str, Any]) -> None:
+        """存储详细分析结果到详情表（可选）"""
+        try:
+            # 检查是否存在analysis_details表
+            # 这里只是示例，实际实现可能需要检查表是否存在
+            pass
+            
+        except Exception as e:
+            self.logger.warning(f"存储详细分析结果时发生错误: {str(e)}")
+            # 不影响主流程
+    
+    def update_error_status(self, sql_id: int, error_message: str) -> bool:
+        """
+        更新错误状态
+        
+        Args:
+            sql_id: SQL记录ID
+            error_message: 错误信息
+            
+        Returns:
+            是否成功
+        """
+        try:
+            success = self.sql_extractor.update_analysis_status(sql_id, 'failed', error_message)
+            
+            if success:
+                self.logger.info(f"SQL ID {sql_id} 错误状态更新成功")
+            else:
+                self.logger.warning(f"SQL ID {sql_id} 错误状态更新失败")
+            
+            return success
+            
+        except Exception as e:
+            self.logger.error(f"更新错误状态时发生错误: {str(e)}", exc_info=True)
+            return False
+    
+    def get_analysis_result(self, sql_id: int) -> Optional[Dict[str, Any]]:
+        """
+        获取分析结果
+        
+        Args:
+            sql_id: SQL记录ID
+            
+        Returns:
+            分析结果
+        """
+        try:
+            query = """
+                SELECT 
+                    ID as id,
+                    SQLLINE as sql_text,
+                    analysis_result,
+                    analysis_status,
+                    analysis_time,
+                    error_message
+                FROM am_solline_info 
+                WHERE ID = %s
+            """
+            
+            result = self.sql_extractor.source_db.fetch_one(query, (sql_id,))
+            
+            if result and result.get('analysis_result'):
+                try:
+                    analysis_data = json.loads(result['analysis_result'])
+                    result['analysis_result'] = analysis_data
+                except json.JSONDecodeError:
+                    self.logger.warning(f"SQL ID {sql_id} 的分析结果JSON解析失败")
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"获取分析结果时发生错误: {str(e)}", exc_info=True)
+            return None

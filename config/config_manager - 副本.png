@@ -1,0 +1,426 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+配置管理模块
+负责读取和管理配置文件
+"""
+
+import os
+import configparser
+from typing import Dict, Any, Optional, List
+
+
+class ConfigManager:
+    """配置管理器"""
+    
+    def __init__(self, config_path: Optional[str] = None):
+        """
+        初始化配置管理器
+        
+        Args:
+            config_path: 配置文件路径，如果为None则使用默认路径
+        """
+        if config_path is None:
+            # 默认配置文件路径
+            config_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'config',
+                'config.ini'
+            )
+        
+        self.config_path = config_path
+        self.config = configparser.ConfigParser()
+        
+        # 读取并预处理配置文件
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"配置文件不存在: {config_path}")
+        
+        # 读取原始文件内容
+        with open(config_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 预处理配置文件，处理重复的数据库节
+        try:
+            processed_content = self._preprocess_config_content(content)
+            # 使用read_string而不是read，以便使用预处理后的内容
+            self.config.read_string(processed_content)
+        except Exception as e:
+            # 如果预处理失败，尝试使用原始内容
+            self.logger = self._get_logger()
+            self.logger.warning(f"配置文件预处理失败，使用原始内容: {str(e)}")
+            self.config.read_string(content)
+        
+        # 验证必要配置
+        self._validate_config()
+    
+    def _get_logger(self):
+        """获取临时日志记录器"""
+        import logging
+        logger = logging.getLogger(__name__)
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+            logger.setLevel(logging.WARNING)
+        return logger
+    
+    def _validate_config(self) -> None:
+        """验证配置文件"""
+        required_sections = ['database', 'ai_model']
+        
+        for section in required_sections:
+            if not self.config.has_section(section):
+                raise ValueError(f"配置文件中缺少必要的段: [{section}]")
+    
+    def _preprocess_config_content(self, content: str) -> str:
+        """
+        预处理配置文件内容，处理重复的数据库节
+        
+        Args:
+            content: 原始配置文件内容
+            
+        Returns:
+            预处理后的内容，重复的数据库节会添加内部后缀
+        """
+        lines = content.splitlines()
+        processed_lines = []
+        section_counts = {}
+        current_section = None
+        
+        for line in lines:
+            stripped = line.strip()
+            
+            # 检查是否是节头
+            if stripped.startswith('[') and stripped.endswith(']'):
+                original_section = stripped[1:-1]
+                
+                # 检查是否是数据库节
+                if self._is_database_section(original_section):
+                    # 处理重复节
+                    if original_section in section_counts:
+                        section_counts[original_section] += 1
+                        new_section = f"{original_section}__{section_counts[original_section]}"
+                    else:
+                        section_counts[original_section] = 1
+                        new_section = original_section
+                    
+                    processed_lines.append(f"[{new_section}]")
+                    current_section = new_section
+                else:
+                    # 非数据库节，不允许重复
+                    if original_section in section_counts:
+                        raise ValueError(f"非数据库节 [{original_section}] 重复")
+                    section_counts[original_section] = 1
+                    processed_lines.append(line)
+                    current_section = original_section
+            else:
+                processed_lines.append(line)
+        
+        return '\n'.join(processed_lines)
+    
+    def get_database_config(self) -> Dict[str, Any]:
+        """
+        获取源数据库配置
+        
+        Returns:
+            数据库配置字典
+        """
+        if not self.config.has_section('database'):
+            return {}
+        
+        return {
+            'host': self.config.get('database', 'source_host', fallback='localhost'),
+            'port': self.config.getint('database', 'source_port', fallback=3306),
+            'database': self.config.get('database', 'source_database', fallback='sql_analysis_db'),
+            'username': self.config.get('database', 'source_username', fallback=''),
+            'password': self.config.get('database', 'source_password', fallback=''),
+            'db_type': self.config.get('database', 'source_db_type', fallback='mysql')
+        }
+    
+    def get_target_db_config(self, db_alias: str, instance_index: int = 0) -> Dict[str, Any]:
+        """
+        获取目标数据库配置
+        
+        Args:
+            db_alias: 数据库别名
+            instance_index: 实例索引（从0开始），默认为0表示获取第一个配置
+            
+        Returns:
+            目标数据库配置字典
+        """
+        # 获取所有匹配的数据库配置
+        all_configs = self.get_all_target_db_configs(db_alias)
+        
+        if not all_configs:
+            raise ValueError(f"找不到数据库配置: {db_alias}")
+        
+        # 检查索引是否有效
+        if instance_index < 0 or instance_index >= len(all_configs):
+            if len(all_configs) == 1:
+                # 只有一个配置，返回它
+                return all_configs[0]
+            else:
+                raise ValueError(f"数据库实例索引 {instance_index} 无效。{db_alias} 有 {len(all_configs)} 个实例")
+        
+        return all_configs[instance_index]
+    
+    def get_ai_model_config(self) -> Dict[str, Any]:
+        """
+        获取AI模型配置
+        
+        Returns:
+            AI模型配置字典
+        """
+        if not self.config.has_section('ai_model'):
+            return {}
+        
+        return {
+            'api_url': self.config.get('ai_model', 'api_url', fallback=''),
+            'api_key': self.config.get('ai_model', 'api_key', fallback=''),
+            'timeout': self.config.getint('ai_model', 'timeout', fallback=30),
+            'max_retries': self.config.getint('ai_model', 'max_retries', fallback=3)
+        }
+    
+    def get_log_config(self) -> Dict[str, Any]:
+        """
+        获取日志配置
+        
+        Returns:
+            日志配置字典
+        """
+        if not self.config.has_section('logging'):
+            return {
+                'log_level': 'INFO',
+                'log_file': 'logs/sql_analyzer.log',
+                'log_format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            }
+        
+        return {
+            'log_level': self.config.get('logging', 'log_level', fallback='INFO'),
+            'log_file': self.config.get('logging', 'log_file', fallback='logs/sql_analyzer.log'),
+            'log_format': self.config.get('logging', 'log_format', 
+                                         fallback='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        }
+    
+    def get_processing_config(self) -> Dict[str, Any]:
+        """
+        获取处理配置
+        
+        Returns:
+            处理配置字典
+        """
+        if not self.config.has_section('processing'):
+            return {
+                'batch_size': 10,
+                'max_workers': 4,
+                'large_table_threshold': 100000
+            }
+        
+        return {
+            'batch_size': self.config.getint('processing', 'batch_size', fallback=10),
+            'max_workers': self.config.getint('processing', 'max_workers', fallback=4),
+            'large_table_threshold': self.config.getint('processing', 'large_table_threshold', fallback=100000)
+        }
+    
+    def get_app_config(self) -> Dict[str, Any]:
+        """
+        获取应用配置
+        
+        Returns:
+            应用配置字典
+        """
+        if not self.config.has_section('app'):
+            return {
+                'debug': False,
+                'max_sql_length': 10000
+            }
+        
+        return {
+            'debug': self.config.getboolean('app', 'debug', fallback=False),
+            'max_sql_length': self.config.getint('app', 'max_sql_length', fallback=10000)
+        }
+    
+    def get_optimization_config(self) -> Dict[str, Any]:
+        """
+        获取优化功能配置
+        
+        Returns:
+            优化配置字典
+        """
+        if not self.config.has_section('optimization'):
+            return {
+                'enable_data_fetching': True,
+                'max_sample_size': 100,
+                'use_cache': True,
+                'enable_dynamic_sql_parsing': True,
+                'dynamic_sql_timeout': 30,
+                'max_dynamic_sql_retries': 3
+            }
+        
+        return {
+            'enable_data_fetching': self.config.getboolean('optimization', 'enable_data_fetching', fallback=True),
+            'max_sample_size': self.config.getint('optimization', 'max_sample_size', fallback=100),
+            'use_cache': self.config.getboolean('optimization', 'use_cache', fallback=True),
+            'enable_dynamic_sql_parsing': self.config.getboolean('optimization', 'enable_dynamic_sql_parsing', fallback=True),
+            'dynamic_sql_timeout': self.config.getint('optimization', 'dynamic_sql_timeout', fallback=30),
+            'max_dynamic_sql_retries': self.config.getint('optimization', 'max_dynamic_sql_retries', fallback=3)
+        }
+    
+    def get_all_target_db_aliases(self) -> list:
+        """
+        获取所有目标数据库别名（唯一别名，不包括实例索引）
+        
+        Returns:
+            唯一数据库别名列表
+        """
+        aliases = set()
+        for section in self.config.sections():
+            # 检查是否是数据库配置段
+            if self._is_database_section(section):
+                # 提取基本别名（去掉实例索引部分）
+                base_alias = self._get_base_alias(section)
+                aliases.add(base_alias)
+        
+        return list(aliases)
+    
+    def get_all_target_db_configs(self, db_alias: str) -> List[Dict[str, Any]]:
+        """
+        获取指定别名的所有数据库配置（支持多个同名数据库实例）
+        
+        Args:
+            db_alias: 数据库别名
+            
+        Returns:
+            数据库配置列表，按实例索引排序
+        """
+        configs = []
+        
+        # 首先检查传统的单实例配置格式 [db_alias]
+        if self.config.has_section(db_alias):
+            config = self._get_single_db_config(db_alias)
+            configs.append(config)
+        
+        # 然后检查多实例配置格式 [db_alias:1], [db_alias:2], ...
+        for section in self.config.sections():
+            if self._is_multi_instance_section(section, db_alias):
+                config = self._get_single_db_config(section)
+                configs.append(config)
+        
+        # 如果没有找到任何配置，尝试使用默认的生产数据库配置
+        if not configs and self.config.has_section('db_production'):
+            config = self._get_single_db_config('db_production')
+            configs.append(config)
+        
+        # 如果没有找到任何配置，返回空列表
+        if not configs:
+            return []
+        
+        # 按实例索引排序
+        configs.sort(key=lambda x: x.get('instance_index', 0))
+        return configs
+    
+    def get_target_db_config_by_index(self, db_alias: str, instance_index: int) -> Dict[str, Any]:
+        """
+        按索引获取指定的数据库配置
+        
+        Args:
+            db_alias: 数据库别名
+            instance_index: 实例索引（从1开始）
+            
+        Returns:
+            数据库配置字典
+        """
+        all_configs = self.get_all_target_db_configs(db_alias)
+        
+        if not all_configs:
+            raise ValueError(f"找不到数据库配置: {db_alias}")
+        
+        # 将1开始的索引转换为0开始的索引
+        zero_based_index = instance_index - 1
+        
+        if zero_based_index < 0 or zero_based_index >= len(all_configs):
+            raise ValueError(f"数据库实例索引 {instance_index} 无效。{db_alias} 有 {len(all_configs)} 个实例")
+        
+        return all_configs[zero_based_index]
+    
+    def _is_database_section(self, section_name: str) -> bool:
+        """判断是否是数据库配置段"""
+        # 数据库配置段通常以 'db_' 开头，或者是特定的别名
+        # 排除一些已知的非数据库配置段
+        non_db_sections = ['database', 'ai_model', 'logging', 'processing', 'app', 'ECUP']
+        if section_name in non_db_sections:
+            return False
+        
+        # 检查是否是db_开头，或者是多实例格式，或者是内部处理后的重复节（带__后缀）
+        base_name = self._extract_base_name(section_name)
+        return base_name.startswith('db_')
+    
+    def _extract_base_name(self, section_name: str) -> str:
+        """
+        从配置段名中提取基本名称，移除实例索引和内部后缀
+        
+        Args:
+            section_name: 配置段名
+            
+        Returns:
+            基本名称
+        """
+        # 移除内部后缀（如__1, __2）
+        if '__' in section_name:
+            base = section_name.split('__')[0]
+        else:
+            base = section_name
+        
+        # 移除实例索引后缀（如:1, :2）
+        if ':' in base:
+            base = base.split(':')[0]
+        
+        return base
+    
+    def _get_base_alias(self, section_name: str) -> str:
+        """从配置段名中提取基本别名"""
+        return self._extract_base_name(section_name)
+    
+    def _is_multi_instance_section(self, section_name: str, db_alias: str) -> bool:
+        """判断是否是多实例配置段"""
+        if ':' not in section_name:
+            return False
+        
+        base_name = section_name.split(':')[0]
+        try:
+            # 检查冒号后的部分是否是数字
+            instance_num = int(section_name.split(':')[1])
+            return base_name == db_alias and instance_num >= 1
+        except (ValueError, IndexError):
+            return False
+    
+    def _get_single_db_config(self, section_name: str) -> Dict[str, Any]:
+        """从单个配置段获取数据库配置"""
+        config = {
+            'host': self.config.get(section_name, 'host', fallback='localhost'),
+            'port': self.config.getint(section_name, 'port', fallback=3306),
+            'database': self.config.get(section_name, 'database', fallback=''),
+            'username': self.config.get(section_name, 'username', fallback=''),
+            'password': self.config.get(section_name, 'password', fallback=''),
+            'db_type': self.config.get(section_name, 'db_type', fallback='mysql'),
+            'section_name': section_name
+        }
+        
+        # 如果是多实例配置，提取实例索引
+        if ':' in section_name:
+            try:
+                config['instance_index'] = int(section_name.split(':')[1])
+                config['instance_alias'] = section_name
+            except (ValueError, IndexError):
+                config['instance_index'] = 0
+                config['instance_alias'] = section_name
+        else:
+            config['instance_index'] = 0
+            config['instance_alias'] = section_name
+        
+        return config
+    
+    def reload(self) -> None:
+        """重新加载配置文件"""
+        self.config.read(self.config_path, encoding='utf-8')

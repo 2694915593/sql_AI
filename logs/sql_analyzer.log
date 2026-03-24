@@ -1,0 +1,2212 @@
+2026-01-28 11:29:31,080 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:29:31,080 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 11:29:31,080 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 11:29:31,081 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:29:31,081 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 11:29:31,081 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 11:29:31,081 - __main__ - INFO - 开始分析SQL ID: 7360
+2026-01-28 11:29:31,082 - __main__ - INFO - 提取到SQL ID 7360: SELECT * FROM users WHERE id = 1...
+2026-01-28 11:29:31,086 - __main__ - INFO - 提取到表名: ['users']
+2026-01-28 11:29:31,086 - __main__ - ERROR - 分析SQL ID 7360 时发生错误: 'db_alias'
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\main.py", line 73, in analyze_single_sql
+    sql_info['db_alias'], table_names
+    ~~~~~~~~^^^^^^^^^^^^
+KeyError: 'db_alias'
+2026-01-28 11:29:31,091 - __main__ - INFO - 更新SQL ID 7360 状态为 failed
+2026-01-28 11:29:31,092 - __main__ - INFO - SQL ID 7360 错误状态更新成功
+2026-01-28 11:30:34,696 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:30:34,697 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 11:30:34,697 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 11:30:34,697 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:30:34,697 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 11:30:34,697 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 11:30:34,697 - __main__ - INFO - 开始分析SQL ID: 7360
+2026-01-28 11:30:34,698 - __main__ - INFO - 提取到SQL ID 7360: SELECT * FROM users WHERE id = 1...
+2026-01-28 11:30:34,701 - __main__ - INFO - 提取到表名: ['users']
+2026-01-28 11:30:34,703 - __main__ - WARNING - 获取表 users DDL失败: 1146 (42S02): Table 'testdb.users' doesn't exist
+2026-01-28 11:30:34,707 - __main__ - WARNING - 获取表 users 行数失败: 1146 (42S02): Table 'testdb.users' doesn't exist
+2026-01-28 11:30:34,710 - __main__ - WARNING - 获取表 users 索引信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:30:34,710 - __main__ - WARNING - 获取表 users 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:30:34,710 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 11:30:34,710 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 11:30:39,718 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 11:30:40,719 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 11:30:45,724 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 11:30:47,725 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-28 11:30:52,731 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 11:30:52,731 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-28 11:30:52,732 - __main__ - INFO - 开始处理SQL ID 7360 的分析结果
+2026-01-28 11:30:52,732 - __main__ - ERROR - 更新分析状态时发生错误: Failed getting connection; pool exhausted
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 654, in get_connection
+    cnx = self._cnx_queue.get(block=False)
+  File "C:\Python313\Lib\queue.py", line 199, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\sql_extractor.py", line 277, in update_analysis_status
+    affected = self.source_db.execute(query, tuple(values))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 244, in execute
+    return self.connector.execute_query(query, params)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 131, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 112, in execute_query
+    conn = self.get_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 86, in get_connection
+    return self.pool.get_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 656, in get_connection
+    raise PoolError("Failed getting connection; pool exhausted") from err
+mysql.connector.errors.PoolError: Failed getting connection; pool exhausted
+2026-01-28 11:30:52,737 - __main__ - WARNING - SQL ID 7360 错误状态更新失败
+2026-01-28 11:30:52,738 - __main__ - INFO - SQL ID 7360 分析完成
+2026-01-28 11:32:28,404 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:32:28,405 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 11:32:28,405 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 11:32:28,405 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:32:28,405 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 11:32:28,405 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 11:32:28,405 - __main__ - INFO - 开始分析SQL ID: 7360
+2026-01-28 11:32:28,407 - __main__ - INFO - 提取到SQL ID 7360: SELECT * FROM users WHERE id = 1...
+2026-01-28 11:32:28,409 - __main__ - INFO - 提取到表名: ['users']
+2026-01-28 11:32:28,411 - __main__ - WARNING - 获取表 users DDL失败: Unread result found
+2026-01-28 11:32:28,424 - __main__ - WARNING - 获取表 users 索引信息失败: Unread result found
+2026-01-28 11:32:28,425 - __main__ - WARNING - 获取表 users 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:32:28,426 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 11:32:28,426 - __main__ - INFO - 调用大模型API (尝试 1/1)
+2026-01-28 11:32:32,503 - __main__ - WARNING - API连接错误 (尝试 1/1)
+2026-01-28 11:32:32,504 - __main__ - ERROR - 调用大模型API时发生错误: 连接错误
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 连接错误
+2026-01-28 11:32:32,505 - __main__ - INFO - 开始处理SQL ID 7360 的分析结果
+2026-01-28 11:32:32,505 - __main__ - ERROR - 更新分析状态时发生错误: Failed getting connection; pool exhausted
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 654, in get_connection
+    cnx = self._cnx_queue.get(block=False)
+  File "C:\Python313\Lib\queue.py", line 199, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\sql_extractor.py", line 277, in update_analysis_status
+    affected = self.source_db.execute(query, tuple(values))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 244, in execute
+    return self.connector.execute_query(query, params)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 131, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 112, in execute_query
+    conn = self.get_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 86, in get_connection
+    return self.pool.get_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 656, in get_connection
+    raise PoolError("Failed getting connection; pool exhausted") from err
+mysql.connector.errors.PoolError: Failed getting connection; pool exhausted
+2026-01-28 11:32:32,508 - __main__ - WARNING - SQL ID 7360 错误状态更新失败
+2026-01-28 11:32:32,508 - __main__ - INFO - SQL ID 7360 分析完成
+2026-01-28 11:33:43,039 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:33:43,039 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 11:33:43,040 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 11:33:43,040 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 11:33:43,040 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 11:33:43,040 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 11:33:43,040 - __main__ - INFO - 开始批量分析，批量大小: 2
+2026-01-28 11:33:43,041 - __main__ - INFO - 获取到 2 条待分析SQL
+2026-01-28 11:33:43,042 - __main__ - INFO - 开始分析SQL ID: 7361
+2026-01-28 11:33:43,043 - __main__ - INFO - 提取到SQL ID 7361: SELECT u.name, o.amount FROM users u JOIN orders o...
+2026-01-28 11:33:43,046 - __main__ - INFO - 提取到表名: ['name', 'amount', 'users u', 'orders o']
+2026-01-28 11:33:43,047 - __main__ - WARNING - 获取表 name DDL失败: 1146 (42S02): Table 'testdb.name' doesn't exist
+2026-01-28 11:33:43,049 - __main__ - WARNING - 获取表 name 行数失败: 1146 (42S02): Table 'testdb.name' doesn't exist
+2026-01-28 11:33:43,050 - __main__ - WARNING - 获取表 name 列信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,050 - __main__ - WARNING - 获取表 name 索引信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,050 - __main__ - WARNING - 获取表 name 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,050 - __main__ - WARNING - 获取表 amount DDL失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,050 - __main__ - WARNING - 获取表 amount 行数失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,050 - __main__ - WARNING - 获取表 amount 列信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 amount 索引信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 amount 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 users u DDL失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 users u 行数失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 users u 列信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 users u 索引信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 users u 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 orders o DDL失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 orders o 行数失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 orders o 列信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 orders o 索引信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,051 - __main__ - WARNING - 获取表 orders o 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 11:33:43,052 - __main__ - INFO - 成功收集 4/4 个表的元数据
+2026-01-28 11:33:43,052 - __main__ - INFO - 调用大模型API (尝试 1/1)
+2026-01-28 11:33:47,105 - __main__ - WARNING - API连接错误 (尝试 1/1)
+2026-01-28 11:33:47,106 - __main__ - ERROR - 调用大模型API时发生错误: 连接错误
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 连接错误
+2026-01-28 11:33:47,107 - __main__ - INFO - 开始处理SQL ID 7361 的分析结果
+2026-01-28 11:33:47,108 - __main__ - ERROR - 更新分析状态时发生错误: Failed getting connection; pool exhausted
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 654, in get_connection
+    cnx = self._cnx_queue.get(block=False)
+  File "C:\Python313\Lib\queue.py", line 199, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\sql_extractor.py", line 277, in update_analysis_status
+    affected = self.source_db.execute(query, tuple(values))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 244, in execute
+    return self.connector.execute_query(query, params)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 131, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 112, in execute_query
+    conn = self.get_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 86, in get_connection
+    return self.pool.get_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 656, in get_connection
+    raise PoolError("Failed getting connection; pool exhausted") from err
+mysql.connector.errors.PoolError: Failed getting connection; pool exhausted
+2026-01-28 11:33:47,110 - __main__ - WARNING - SQL ID 7361 错误状态更新失败
+2026-01-28 11:33:47,110 - __main__ - INFO - SQL ID 7361 分析完成
+2026-01-28 11:33:47,110 - __main__ - INFO - 开始分析SQL ID: 7362
+2026-01-28 11:33:47,110 - __main__ - ERROR - 提取SQL ID 7362 时发生错误: Failed getting connection; pool exhausted
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 654, in get_connection
+    cnx = self._cnx_queue.get(block=False)
+  File "C:\Python313\Lib\queue.py", line 199, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\sql_extractor.py", line 101, in extract_sql_by_id
+    result = self.source_db.fetch_one(query, (sql_id,))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 231, in fetch_one
+    return self.connector.execute_query(query, params, fetch_one=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 131, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 112, in execute_query
+    conn = self.get_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 86, in get_connection
+    return self.pool.get_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 656, in get_connection
+    raise PoolError("Failed getting connection; pool exhausted") from err
+mysql.connector.errors.PoolError: Failed getting connection; pool exhausted
+2026-01-28 11:33:47,112 - __main__ - ERROR - 未找到SQL ID: 7362
+2026-01-28 11:33:47,112 - __main__ - INFO - 批量分析完成: 共处理 2 条，成功 0 条，失败 2 条
+2026-01-28 19:05:38,241 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 19:05:38,241 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 19:06:32,659 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 19:06:32,659 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 19:06:32,659 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 19:06:32,659 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 19:06:32,659 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 19:06:32,660 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 19:06:32,660 - __main__ - INFO - 开始批量分析，批量大小: 2
+2026-01-28 19:06:32,662 - __main__ - INFO - 获取到 2 条待分析SQL
+2026-01-28 19:06:32,662 - __main__ - INFO - 开始分析SQL ID: 7361
+2026-01-28 19:06:32,663 - __main__ - INFO - 提取到SQL ID 7361: SELECT u.name, o.amount FROM users u JOIN orders o...
+2026-01-28 19:06:32,667 - __main__ - INFO - 提取到表名: ['name', 'amount', 'users u', 'orders o']
+2026-01-28 19:06:32,703 - __main__ - ERROR - 收集元数据时发生错误: MySQL连接池初始化失败: 1045 (28000): Access denied for user 'your_username'@'localhost' (using password: YES)
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 66, in _init_mysql_pool
+    self.pool = mysql.connector.pooling.MySQLConnectionPool(**pool_config)
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 490, in __init__
+    self.add_connection()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 613, in add_connection
+    cnx = connect(**self._cnx_config)  # type: ignore[assignment]
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 323, in connect
+    return MySQLConnection(*args, **kwargs)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 185, in __init__
+    self.connect(**kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\abstracts.py", line 1604, in connect
+    self._open_connection()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 411, in _open_connection
+    raise err
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 388, in _open_connection
+    self._do_auth(
+    ~~~~~~~~~~~~~^
+        self._user,
+        ^^^^^^^^^^^
+    ...<4 lines>...
+        self._conn_attrs,
+        ^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 320, in _do_auth
+    ok_pkt = self._authenticator.authenticate(
+        sock=self._socket,
+    ...<10 lines>...
+        conn_attrs=conn_attrs,
+    )
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\authentication.py", line 381, in authenticate
+    ok_pkt = self._handle_server_response(sock, pkt)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\authentication.py", line 287, in _handle_server_response
+    raise get_exception(pkt)
+mysql.connector.errors.ProgrammingError: 1045 (28000): Access denied for user 'your_username'@'localhost' (using password: YES)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 49, in collect_metadata
+    target_db = DatabaseManager(target_config)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 205, in __init__
+    self.connector = DBConnector(config)
+                     ~~~~~~~~~~~^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 28, in __new__
+    instance._init_pool(config, pool_size)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 40, in _init_pool
+    self._init_mysql_pool()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 68, in _init_mysql_pool
+    raise ConnectionError(f"MySQL连接池初始化失败: {str(e)}")
+ConnectionError: MySQL连接池初始化失败: 1045 (28000): Access denied for user 'your_username'@'localhost' (using password: YES)
+2026-01-28 19:06:32,708 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 19:06:37,716 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:06:38,716 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 19:06:43,722 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:06:45,723 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-28 19:06:50,746 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:06:50,746 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-28 19:06:50,747 - __main__ - INFO - 开始处理SQL ID 7361 的分析结果
+2026-01-28 19:06:50,752 - __main__ - INFO - 更新SQL ID 7361 状态为 failed
+2026-01-28 19:06:50,752 - __main__ - INFO - SQL ID 7361 错误状态更新成功
+2026-01-28 19:06:50,753 - __main__ - INFO - SQL ID 7361 分析完成
+2026-01-28 19:06:50,753 - __main__ - INFO - 开始分析SQL ID: 7362
+2026-01-28 19:06:50,754 - __main__ - INFO - 提取到SQL ID 7362: SELECT * FROM transaction_logs WHERE create_date >...
+2026-01-28 19:06:50,755 - __main__ - INFO - 提取到表名: ['transaction_logs']
+2026-01-28 19:06:50,793 - __main__ - ERROR - 收集元数据时发生错误: MySQL连接池初始化失败: 1045 (28000): Access denied for user 'your_username'@'localhost' (using password: YES)
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 66, in _init_mysql_pool
+    self.pool = mysql.connector.pooling.MySQLConnectionPool(**pool_config)
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 490, in __init__
+    self.add_connection()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 613, in add_connection
+    cnx = connect(**self._cnx_config)  # type: ignore[assignment]
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 323, in connect
+    return MySQLConnection(*args, **kwargs)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 185, in __init__
+    self.connect(**kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\abstracts.py", line 1604, in connect
+    self._open_connection()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 411, in _open_connection
+    raise err
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 388, in _open_connection
+    self._do_auth(
+    ~~~~~~~~~~~~~^
+        self._user,
+        ^^^^^^^^^^^
+    ...<4 lines>...
+        self._conn_attrs,
+        ^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\connection.py", line 320, in _do_auth
+    ok_pkt = self._authenticator.authenticate(
+        sock=self._socket,
+    ...<10 lines>...
+        conn_attrs=conn_attrs,
+    )
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\authentication.py", line 381, in authenticate
+    ok_pkt = self._handle_server_response(sock, pkt)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\authentication.py", line 287, in _handle_server_response
+    raise get_exception(pkt)
+mysql.connector.errors.ProgrammingError: 1045 (28000): Access denied for user 'your_username'@'localhost' (using password: YES)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 49, in collect_metadata
+    target_db = DatabaseManager(target_config)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 205, in __init__
+    self.connector = DBConnector(config)
+                     ~~~~~~~~~~~^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 28, in __new__
+    instance._init_pool(config, pool_size)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 40, in _init_pool
+    self._init_mysql_pool()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 68, in _init_mysql_pool
+    raise ConnectionError(f"MySQL连接池初始化失败: {str(e)}")
+ConnectionError: MySQL连接池初始化失败: 1045 (28000): Access denied for user 'your_username'@'localhost' (using password: YES)
+2026-01-28 19:06:50,797 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 19:06:55,814 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:06:56,815 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 19:07:01,840 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:07:03,841 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-28 19:07:08,872 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:07:08,872 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-28 19:07:08,873 - __main__ - INFO - 开始处理SQL ID 7362 的分析结果
+2026-01-28 19:07:08,876 - __main__ - INFO - 更新SQL ID 7362 状态为 failed
+2026-01-28 19:07:08,877 - __main__ - INFO - SQL ID 7362 错误状态更新成功
+2026-01-28 19:07:08,878 - __main__ - INFO - SQL ID 7362 分析完成
+2026-01-28 19:07:08,878 - __main__ - INFO - 批量分析完成: 共处理 2 条，成功 0 条，失败 2 条
+2026-01-28 19:11:15,484 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 19:11:15,485 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 19:11:15,485 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 19:11:15,485 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 19:11:15,485 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 19:11:15,486 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 19:11:15,486 - __main__ - INFO - 开始批量分析，批量大小: 2
+2026-01-28 19:11:15,487 - __main__ - INFO - 获取到 2 条待分析SQL
+2026-01-28 19:11:15,487 - __main__ - INFO - 开始分析SQL ID: 7363
+2026-01-28 19:11:15,488 - __main__ - INFO - 提取到SQL ID 7363: UPDATE products SET price = price * 1.1 WHERE cate...
+2026-01-28 19:11:15,489 - __main__ - INFO - 提取到表名: ['products']
+2026-01-28 19:11:15,489 - __main__ - WARNING - 获取表 products DDL失败: Unread result found
+2026-01-28 19:11:15,495 - __main__ - WARNING - 获取表 products 索引信息失败: Failed getting connection; pool exhausted
+2026-01-28 19:11:15,495 - __main__ - WARNING - 获取表 products 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 19:11:15,495 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 19:11:15,495 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 19:11:20,516 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:11:21,517 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 19:11:26,540 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:11:28,541 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-28 19:11:33,570 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 19:11:33,570 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-28 19:11:33,572 - __main__ - INFO - 开始处理SQL ID 7363 的分析结果
+2026-01-28 19:11:33,572 - __main__ - ERROR - 更新分析状态时发生错误: Failed getting connection; pool exhausted
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 654, in get_connection
+    cnx = self._cnx_queue.get(block=False)
+  File "C:\Python313\Lib\queue.py", line 199, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\sql_extractor.py", line 287, in update_analysis_status
+    affected = self.source_db.execute(query, tuple(values))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 244, in execute
+    return self.connector.execute_query(query, params)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 131, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 112, in execute_query
+    conn = self.get_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 86, in get_connection
+    return self.pool.get_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 656, in get_connection
+    raise PoolError("Failed getting connection; pool exhausted") from err
+mysql.connector.errors.PoolError: Failed getting connection; pool exhausted
+2026-01-28 19:11:33,574 - __main__ - WARNING - SQL ID 7363 错误状态更新失败
+2026-01-28 19:11:33,574 - __main__ - INFO - SQL ID 7363 分析完成
+2026-01-28 19:11:33,575 - __main__ - INFO - 开始分析SQL ID: 7364
+2026-01-28 19:11:33,575 - __main__ - ERROR - 提取SQL ID 7364 时发生错误: Failed getting connection; pool exhausted
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 654, in get_connection
+    cnx = self._cnx_queue.get(block=False)
+  File "C:\Python313\Lib\queue.py", line 199, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\sql_extractor.py", line 101, in extract_sql_by_id
+    result = self.source_db.fetch_one(query, (sql_id,))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 231, in fetch_one
+    return self.connector.execute_query(query, params, fetch_one=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 131, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 112, in execute_query
+    conn = self.get_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 86, in get_connection
+    return self.pool.get_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 656, in get_connection
+    raise PoolError("Failed getting connection; pool exhausted") from err
+mysql.connector.errors.PoolError: Failed getting connection; pool exhausted
+2026-01-28 19:11:33,576 - __main__ - ERROR - 未找到SQL ID: 7364
+2026-01-28 19:11:33,576 - __main__ - INFO - 批量分析完成: 共处理 2 条，成功 0 条，失败 2 条
+2026-01-28 20:22:23,804 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:22:23,804 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 20:22:23,805 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 20:22:23,805 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:22:23,805 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 20:22:23,805 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 20:22:23,805 - __main__ - INFO - 开始批量分析，批量大小: 10
+2026-01-28 20:22:23,806 - __main__ - INFO - 获取到 1 条待分析SQL
+2026-01-28 20:22:23,806 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-28 20:22:23,807 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-28 20:22:23,807 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-28 20:22:23,808 - __main__ - WARNING - 获取表 testtable DDL失败: 1146 (42S02): Table 'testdb.testtable' doesn't exist
+2026-01-28 20:22:23,811 - __main__ - WARNING - 获取表 testtable 行数失败: 1146 (42S02): Table 'testdb.testtable' doesn't exist
+2026-01-28 20:22:23,811 - __main__ - WARNING - 获取表 testtable 列信息失败: Failed getting connection; pool exhausted
+2026-01-28 20:22:23,811 - __main__ - WARNING - 获取表 testtable 索引信息失败: Failed getting connection; pool exhausted
+2026-01-28 20:22:23,811 - __main__ - WARNING - 获取表 testtable 主键信息失败: Failed getting connection; pool exhausted
+2026-01-28 20:22:23,811 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 20:22:23,812 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 20:22:28,819 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:22:29,820 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 20:22:34,862 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:22:36,863 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-28 20:22:41,878 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:22:41,879 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-28 20:22:41,880 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-28 20:22:41,880 - __main__ - ERROR - 更新分析状态时发生错误: Failed getting connection; pool exhausted
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 654, in get_connection
+    cnx = self._cnx_queue.get(block=False)
+  File "C:\Python313\Lib\queue.py", line 199, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\sql_extractor.py", line 287, in update_analysis_status
+    affected = self.source_db.execute(query, tuple(values))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 244, in execute
+    return self.connector.execute_query(query, params)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 131, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 112, in execute_query
+    conn = self.get_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector.py", line 86, in get_connection
+    return self.pool.get_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\mysql\connector\pooling.py", line 656, in get_connection
+    raise PoolError("Failed getting connection; pool exhausted") from err
+mysql.connector.errors.PoolError: Failed getting connection; pool exhausted
+2026-01-28 20:22:41,883 - __main__ - WARNING - SQL ID 1 错误状态更新失败
+2026-01-28 20:22:41,883 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-28 20:22:41,883 - __main__ - INFO - 批量分析完成: 共处理 1 条，成功 0 条，失败 1 条
+2026-01-28 20:25:50,502 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:25:50,503 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 20:25:50,503 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 20:25:50,503 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:25:50,504 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 20:25:50,504 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 20:25:50,504 - __main__ - INFO - 开始批量分析，批量大小: 10
+2026-01-28 20:25:50,505 - __main__ - INFO - 获取到 0 条待分析SQL
+2026-01-28 20:25:50,505 - __main__ - INFO - 没有待分析的SQL语句
+2026-01-28 20:31:14,574 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:31:14,574 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 20:31:14,575 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 20:31:14,575 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:31:14,575 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 20:31:14,575 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 20:31:14,575 - __main__ - INFO - 开始批量分析，批量大小: 10
+2026-01-28 20:31:14,577 - __main__ - INFO - 获取到 0 条待分析SQL
+2026-01-28 20:31:14,577 - __main__ - INFO - 没有待分析的SQL语句
+2026-01-28 20:31:31,049 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:31:31,050 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 20:31:31,050 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 20:31:31,050 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:31:31,050 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 20:31:31,050 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 20:31:31,050 - __main__ - INFO - 开始批量分析，批量大小: 10
+2026-01-28 20:31:31,051 - __main__ - INFO - 获取到 1 条待分析SQL
+2026-01-28 20:31:31,051 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-28 20:31:31,052 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-28 20:31:31,052 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-28 20:31:31,053 - __main__ - WARNING - 表 testtable 不存在，跳过元数据收集
+2026-01-28 20:31:31,053 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 20:31:31,053 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 20:31:36,067 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:31:37,068 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 20:32:18,215 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:32:18,216 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 20:32:18,216 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 20:32:18,216 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:32:18,216 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 20:32:18,216 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 20:32:18,216 - __main__ - INFO - 开始批量分析，批量大小: 10
+2026-01-28 20:32:18,218 - __main__ - INFO - 获取到 1 条待分析SQL
+2026-01-28 20:32:18,218 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-28 20:32:18,219 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-28 20:32:18,219 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-28 20:32:18,221 - __main__ - WARNING - 表 testtable 不存在，跳过元数据收集
+2026-01-28 20:32:18,221 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 20:32:18,221 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 20:44:24,746 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:44:24,746 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 20:44:24,746 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 20:44:24,747 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:44:24,747 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 20:44:24,747 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 20:44:24,747 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-28 20:44:24,748 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-28 20:44:24,748 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-28 20:44:24,914 - __main__ - WARNING - 获取表 testtable DDL失败: Unread result found
+2026-01-28 20:44:24,919 - __main__ - WARNING - 获取表 testtable 索引信息失败: Unread result found
+2026-01-28 20:44:24,920 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 20:44:24,920 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 20:44:29,927 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:44:30,928 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 20:44:35,954 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:44:37,956 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-28 20:44:42,980 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:44:42,981 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-28 20:44:42,982 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-28 20:44:42,986 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-28 20:44:42,986 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-28 20:44:42,986 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-28 20:46:41,005 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:46:41,006 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-28 20:46:41,006 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-28 20:46:41,006 - __main__ - INFO - SQL提取器初始化完成
+2026-01-28 20:46:41,006 - __main__ - INFO - 结果处理器初始化完成
+2026-01-28 20:46:41,007 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-28 20:46:41,007 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-28 20:46:41,008 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-28 20:46:41,008 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-28 20:46:41,200 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-28 20:46:41,200 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-28 20:46:46,234 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:46:47,236 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-28 20:46:52,255 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:46:54,256 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-28 20:46:59,266 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-28 20:46:59,267 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-28 20:46:59,268 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-28 20:46:59,274 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-28 20:46:59,274 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-28 20:46:59,274 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-29 09:38:19,616 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 09:38:19,617 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-29 09:38:19,617 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-29 09:38:19,617 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 09:38:19,617 - __main__ - INFO - 结果处理器初始化完成
+2026-01-29 09:38:19,617 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-29 09:38:19,617 - __main__ - INFO - 开始批量分析，批量大小: 10
+2026-01-29 09:38:19,619 - __main__ - INFO - 获取到 1 条待分析SQL
+2026-01-29 09:38:19,619 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-29 09:38:19,621 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 09:38:19,622 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-29 09:38:19,786 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-29 09:38:19,786 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-29 09:38:24,820 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 09:38:25,821 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-29 09:38:30,839 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 09:38:32,839 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-29 09:38:37,871 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 09:38:37,871 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-29 09:38:37,872 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-29 09:38:37,876 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-29 09:38:37,876 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-29 09:38:37,877 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-29 09:38:37,877 - __main__ - INFO - 批量分析完成: 共处理 1 条，成功 0 条，失败 1 条
+2026-01-29 10:15:23,913 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 10:15:23,913 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-29 10:15:23,913 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-29 10:15:23,913 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 10:15:23,914 - __main__ - INFO - 结果处理器初始化完成
+2026-01-29 10:15:23,914 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-29 10:15:23,914 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-29 10:15:23,915 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 10:15:23,915 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-29 10:15:23,930 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-29 10:15:23,931 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-29 10:15:28,968 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 10:15:29,968 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-29 10:15:34,989 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 10:15:36,990 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-29 10:15:42,012 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 10:15:42,012 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-29 10:15:42,013 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-29 10:15:42,016 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-29 10:15:42,017 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-29 10:15:42,017 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-29 10:29:01,718 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 10:29:01,718 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-29 10:29:01,719 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-29 10:29:01,719 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 10:29:01,719 - __main__ - INFO - 结果处理器初始化完成
+2026-01-29 10:29:01,719 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-29 10:29:01,719 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-29 10:29:01,719 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 10:29:01,720 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-29 10:29:01,742 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-29 10:29:01,743 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-29 10:29:06,751 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 10:29:07,752 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-29 10:29:12,765 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 10:29:14,767 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-29 10:29:19,782 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 10:29:19,783 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-29 10:29:19,784 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-29 10:29:19,787 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-29 10:29:19,787 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-29 10:29:19,787 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-29 13:53:43,187 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 14:27:52,810 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 14:27:52,810 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-29 14:27:52,811 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-29 14:27:52,811 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 14:27:52,811 - __main__ - INFO - 结果处理器初始化完成
+2026-01-29 14:27:52,811 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-29 14:27:52,811 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-29 14:27:52,812 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 14:27:52,812 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-29 14:27:52,836 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-29 14:27:52,836 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-29 14:27:57,854 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 14:27:58,855 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-29 14:28:03,871 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 14:28:05,872 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-29 14:28:10,881 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 14:28:10,881 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 213, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-29 14:28:10,883 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-29 14:28:10,886 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-29 14:28:10,887 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-29 14:28:10,887 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-29 14:38:40,788 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 14:38:46,832 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 14:38:46,833 - ModelClient - INFO - 调用大模型API (尝试 1/3)
+2026-01-29 14:38:48,855 - ModelClient - INFO - API调用成功，状态码: 200
+2026-01-29 14:38:48,855 - ModelClient - INFO - 解析API响应成功，评分: 8.5, 建议数量: 2
+2026-01-29 14:44:30,019 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 14:44:47,034 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 14:44:47,034 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-29 14:44:47,035 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-29 14:44:47,035 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 14:44:47,035 - __main__ - INFO - 结果处理器初始化完成
+2026-01-29 14:44:47,035 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-29 14:44:47,035 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-29 14:44:47,036 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 14:44:47,036 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-29 14:44:47,046 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-29 14:44:47,047 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-29 14:44:52,069 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 14:44:53,070 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-29 14:44:58,112 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 14:45:00,113 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-29 14:45:05,145 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 14:45:05,145 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 221, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-29 14:45:05,146 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-29 14:45:05,150 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-29 14:45:05,151 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-29 14:45:05,151 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-29 14:48:54,340 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 14:48:54,341 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 14:48:54,417 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-29 14:48:54,427 - SQLExtractor - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 14:55:57,234 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 14:57:49,269 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 16:14:44,908 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 16:14:45,019 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-29 16:14:45,020 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-01-29 16:14:45,021 - SQLExtractor - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 16:14:45,031 - MetadataCollector - INFO - 成功收集 1/1 个表的元数据
+2026-01-29 16:14:45,040 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 16:55:26,279 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 16:56:26,954 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 16:56:26,954 - __main__ - INFO - 元数据收集器初始化完成
+2026-01-29 16:56:26,955 - __main__ - INFO - 大模型API客户端初始化完成
+2026-01-29 16:56:26,955 - __main__ - INFO - SQL提取器初始化完成
+2026-01-29 16:56:26,955 - __main__ - INFO - 结果处理器初始化完成
+2026-01-29 16:56:26,955 - __main__ - INFO - SQL质量分析器初始化完成
+2026-01-29 16:56:26,955 - __main__ - INFO - 开始分析SQL ID: 1
+2026-01-29 16:56:26,956 - __main__ - INFO - 提取到SQL ID 1: SELECT * FROM testtable WHERE systemID = 1...
+2026-01-29 16:56:26,956 - __main__ - INFO - 提取到表名: ['testtable']
+2026-01-29 16:56:26,965 - __main__ - INFO - 成功收集 1/1 个表的元数据
+2026-01-29 16:56:26,965 - __main__ - INFO - 调用大模型API (尝试 1/3)
+2026-01-29 16:56:31,985 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 16:56:32,986 - __main__ - INFO - 调用大模型API (尝试 2/3)
+2026-01-29 16:56:38,000 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 16:56:40,001 - __main__ - INFO - 调用大模型API (尝试 3/3)
+2026-01-29 16:56:45,028 - __main__ - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-29 16:56:45,029 - __main__ - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 247, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-29 16:56:45,030 - __main__ - INFO - 开始处理SQL ID 1 的分析结果
+2026-01-29 16:56:45,034 - __main__ - INFO - 更新SQL ID 1 状态为 failed
+2026-01-29 16:56:45,035 - __main__ - INFO - SQL ID 1 错误状态更新成功
+2026-01-29 16:56:45,036 - __main__ - INFO - SQL ID 1 分析完成
+2026-01-29 17:10:07,250 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 17:10:07,251 - ModelClient - INFO - 解析API响应成功，评分: 8.0, 建议数量: 0
+2026-01-29 17:10:07,252 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 17:11:04,142 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 17:11:04,142 - ModelClient - INFO - 解析API响应成功，评分: 8.0, 建议数量: 10
+2026-01-29 17:11:04,144 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 17:13:22,801 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-29 17:13:22,802 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-01-29 17:13:22,803 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 17:13:22,804 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-29 17:13:22,805 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-01-29 17:13:22,805 - ModelClient - INFO - 解析API响应成功，评分: 8.0, 建议数量: 10
+2026-01-29 17:13:22,808 - ResultProcessor - INFO - 开始处理SQL ID 999 的分析结果
+2026-01-29 17:13:22,810 - ResultProcessor - WARNING - SQL ID 999 分析结果存储失败，未找到记录
+2026-01-29 17:13:22,811 - SQLExtractor - WARNING - 更新SQL ID 999 状态失败，未找到记录
+2026-01-29 17:13:22,811 - ResultProcessor - WARNING - SQL ID 999 错误状态更新失败
+2026-01-29 17:27:40,999 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 17:27:41,037 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-29 17:27:41,038 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-01-29 17:27:41,038 - ModelClient - INFO - 解析API响应成功，评分: 8.0, 建议数量: 10
+2026-01-29 17:29:49,924 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-29 17:29:49,925 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-01-29 17:29:49,930 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-29 17:29:49,931 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-29 17:29:49,932 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-01-29 17:29:49,934 - ModelClient - INFO - 解析API响应成功，评分: 8.0, 建议数量: 10
+2026-01-29 17:29:49,938 - ResultProcessor - INFO - 开始处理SQL ID 999 的分析结果
+2026-01-29 17:29:49,940 - ResultProcessor - WARNING - SQL ID 999 分析结果存储失败，未找到记录
+2026-01-29 17:29:49,941 - SQLExtractor - WARNING - 更新SQL ID 999 状态失败，未找到记录
+2026-01-29 17:29:49,941 - ResultProcessor - WARNING - SQL ID 999 错误状态更新失败
+2026-01-30 13:26:51,549 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 13:26:51,552 - ModelClient - INFO - 解析API响应成功，综合评分: 8.5, SQL注入风险: 低
+2026-01-30 13:26:51,553 - ModelClient - INFO - 调用大模型API (尝试 1/3)
+2026-01-30 13:26:56,565 - ModelClient - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-30 13:26:57,566 - ModelClient - INFO - 调用大模型API (尝试 2/3)
+2026-01-30 13:27:02,586 - ModelClient - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-30 13:27:04,587 - ModelClient - INFO - 调用大模型API (尝试 3/3)
+2026-01-30 13:27:09,601 - ModelClient - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-30 13:27:09,601 - ModelClient - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 330, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-30 13:27:09,707 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 13:27:09,708 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-01-30 13:51:47,652 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 13:51:47,653 - ModelClient - INFO - 解析API响应成功，SQL类型: 建表, 综合评分: 8.5
+2026-01-30 13:51:47,655 - ModelClient - INFO - 调用大模型API (尝试 1/3)
+2026-01-30 13:51:52,677 - ModelClient - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-30 13:51:53,678 - ModelClient - INFO - 调用大模型API (尝试 2/3)
+2026-01-30 13:51:58,704 - ModelClient - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-30 13:52:00,705 - ModelClient - INFO - 调用大模型API (尝试 3/3)
+2026-01-30 13:52:05,723 - ModelClient - WARNING - API调用返回非200状态码: 502, 响应: 
+2026-01-30 13:52:05,723 - ModelClient - ERROR - 调用大模型API时发生错误: 服务器错误: 502
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 55, in analyze_sql
+    response = self._call_api_with_retry(payload)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\ai_integration\model_client.py", line 400, in _call_api_with_retry
+    raise last_exception
+Exception: 服务器错误: 502
+2026-01-30 15:36:06,690 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 15:36:06,693 - ModelClient - INFO - 解析API响应成功，SQL类型: 查询, 综合评分: 8.5
+2026-01-30 15:38:24,030 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 15:41:29,776 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 16:13:37,943 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 16:13:37,945 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 16:13:37,950 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 16:14:13,179 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 17:51:19,092 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 17:51:19,094 - SQLExtractor - INFO - 获取到 0 条待分析SQL
+2026-01-30 17:51:19,096 - SQLExtractor - WARNING - 更新SQL ID 999999 状态失败，未找到记录
+2026-01-30 17:53:44,306 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 17:53:44,307 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 17:53:44,307 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-01-30 17:53:44,309 - SQLExtractor - INFO - 获取到 0 条待分析SQL
+2026-01-30 17:53:44,312 - SQLExtractor - INFO - 更新SQL ID 7360 状态为 pending
+2026-01-30 17:53:44,314 - SQLExtractor - INFO - 更新SQL ID 7363 状态为 pending
+2026-01-30 17:53:44,315 - SQLExtractor - INFO - 获取到 2 条待分析SQL
+2026-01-30 17:53:44,315 - ResultProcessor - INFO - 开始处理SQL ID 7360 的分析结果
+2026-01-30 17:53:44,316 - ResultProcessor - ERROR - 存储分析结果时发生错误: (1292, "Incorrect datetime value: 'NOW()' for column 'analysis_time' at row 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\storage\result_processor.py", line 409, in _store_analysis_result
+    affected = self.sql_extractor.source_db.execute(query, tuple(values))
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 290, in execute
+    return self.connector.execute_query(query, params)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 194, in execute_query
+    raise e
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 174, in execute_query
+    cursor.execute(query, params or ())
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1292, "Incorrect datetime value: 'NOW()' for column 'analysis_time' at row 1")
+2026-01-30 17:53:44,325 - SQLExtractor - INFO - 更新SQL ID 7360 状态为 failed
+2026-01-30 17:53:44,326 - ResultProcessor - INFO - SQL ID 7360 错误状态更新成功
+2026-01-30 17:54:45,846 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 17:54:45,846 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 17:54:45,847 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-01-30 17:54:45,848 - SQLExtractor - INFO - 获取到 1 条待分析SQL
+2026-01-30 17:54:45,849 - ResultProcessor - INFO - 开始处理SQL ID 7363 的分析结果
+2026-01-30 17:54:45,852 - ResultProcessor - INFO - SQL ID 7363 分析结果存储成功
+2026-01-30 17:54:45,852 - SQLExtractor - WARNING - 更新SQL ID 7363 状态失败，未找到记录
+2026-01-30 17:54:45,853 - ResultProcessor - INFO - SQL ID 7363 分析结果处理完成，评分: 8.5
+2026-01-30 17:55:11,256 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 17:55:11,257 - SQLExtractor - INFO - 获取到 0 条待分析SQL
+2026-01-30 17:55:11,258 - SQLExtractor - WARNING - 更新SQL ID 999999 状态失败，未找到记录
+2026-01-30 18:00:00,005 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 18:00:54,216 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 18:00:54,218 - ModelClient - INFO - 成功解析answer字段中的JSON数据
+2026-01-30 18:00:54,218 - ModelClient - INFO - 使用原始响应数据
+2026-01-30 18:00:54,218 - ModelClient - INFO - 解析API响应成功，SQL类型: 未知, 综合评分: 5.0
+2026-01-30 18:01:30,744 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 18:01:30,745 - ModelClient - INFO - 成功解析answer字段中的JSON数据
+2026-01-30 18:01:30,746 - ModelClient - INFO - 使用原始响应数据
+2026-01-30 18:01:30,746 - ModelClient - INFO - 解析API响应成功，SQL类型: 未知, 综合评分: 5.0
+2026-01-30 18:02:30,399 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 18:02:30,401 - ModelClient - INFO - 成功解析answer字段中的JSON数据
+2026-01-30 18:02:30,401 - ModelClient - INFO - 解析结果是字符串，需要二次解析
+2026-01-30 18:02:30,401 - ModelClient - INFO - 二次解析成功
+2026-01-30 18:02:30,401 - ModelClient - INFO - 使用answer字段中的分析数据，SQL类型: 数据操作
+2026-01-30 18:02:30,402 - ModelClient - INFO - 解析API响应成功，SQL类型: 数据操作, 综合评分: 5.0
+2026-01-30 18:24:39,647 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 18:24:39,648 - ModelClient - INFO - 成功解析answer字段中的JSON数据
+2026-01-30 18:24:39,648 - ModelClient - INFO - 解析结果是字符串，需要二次解析
+2026-01-30 18:24:39,648 - ModelClient - INFO - 二次解析成功
+2026-01-30 18:24:39,648 - ModelClient - INFO - 使用answer字段中的分析数据，SQL类型: 数据操作
+2026-01-30 18:24:39,648 - ModelClient - INFO - 解析API响应成功，SQL类型: 数据操作, 综合评分: 5.0
+2026-01-30 18:44:25,832 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 18:44:25,832 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-01-30 18:44:25,832 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-01-30 18:44:25,833 - SQLExtractor - INFO - 获取到 0 条待分析SQL
+2026-01-30 18:44:25,835 - SQLExtractor - INFO - 更新SQL ID 7363 状态为 pending
+2026-01-30 18:44:25,836 - SQLExtractor - INFO - 更新SQL ID 7364 状态为 pending
+2026-01-30 18:44:25,837 - SQLExtractor - INFO - 获取到 2 条待分析SQL
+2026-01-30 18:44:25,837 - ResultProcessor - INFO - 开始处理SQL ID 7363 的分析结果
+2026-01-30 18:44:25,839 - ResultProcessor - INFO - SQL ID 7363 分析结果存储成功
+2026-01-30 18:44:25,840 - SQLExtractor - WARNING - 更新SQL ID 7363 状态失败，未找到记录
+2026-01-30 18:44:25,840 - ResultProcessor - INFO - SQL ID 7363 分析结果处理完成，评分: 8.5
+2026-01-30 18:48:21,392 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-01-30 18:48:21,395 - ModelClient - INFO - 成功解析answer字段中的JSON数据
+2026-01-30 18:48:21,395 - ModelClient - INFO - 解析结果是字符串，需要二次解析
+2026-01-30 18:48:21,395 - ModelClient - INFO - 二次解析成功
+2026-01-30 18:48:21,395 - ModelClient - INFO - 使用answer字段中的分析数据，SQL类型: 数据操作
+2026-01-30 18:48:21,395 - ModelClient - INFO - 解析API响应成功，SQL类型: 数据操作, 综合评分: 5.0
+2026-02-02 11:07:13,971 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:09:03,418 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:10:23,017 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:10:23,018 - SQLExtractor - INFO - 获取到 1 条待分析SQL
+2026-02-02 11:10:34,169 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:10:34,169 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:10:34,170 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-02-02 11:10:34,171 - SQLExtractor - INFO - 获取到 1 条待分析SQL
+2026-02-02 11:10:34,171 - ResultProcessor - INFO - 开始处理SQL ID 7364 的分析结果
+2026-02-02 11:10:34,174 - ResultProcessor - INFO - SQL ID 7364 分析结果存储成功
+2026-02-02 11:10:34,175 - SQLExtractor - WARNING - 更新SQL ID 7364 状态失败，未找到记录
+2026-02-02 11:10:34,175 - ResultProcessor - INFO - SQL ID 7364 分析结果处理完成，评分: 8.5
+2026-02-02 11:12:31,492 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:12:31,493 - SQLExtractor - INFO - 获取到 0 条待分析SQL
+2026-02-02 11:28:19,450 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-02-02 11:28:29,487 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:28:29,487 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-02 11:28:29,488 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-02-02 11:28:29,489 - SQLExtractor - INFO - 获取到 0 条待分析SQL
+2026-02-02 11:28:29,493 - SQLExtractor - INFO - 更新SQL ID 7363 状态为 pending
+2026-02-02 11:28:29,494 - SQLExtractor - INFO - 更新SQL ID 7364 状态为 pending
+2026-02-02 11:28:29,495 - SQLExtractor - INFO - 获取到 2 条待分析SQL
+2026-02-02 11:28:29,495 - ResultProcessor - INFO - 开始处理SQL ID 7363 的分析结果
+2026-02-02 11:28:29,497 - ResultProcessor - INFO - SQL ID 7363 分析结果存储成功
+2026-02-02 11:28:29,498 - SQLExtractor - WARNING - 更新SQL ID 7363 状态失败，未找到记录
+2026-02-02 11:28:29,498 - ResultProcessor - INFO - SQL ID 7363 分析结果处理完成，评分: 8.5
+2026-02-03 14:36:19,987 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'name']
+2026-02-03 14:36:19,988 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:19,988 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'name']
+2026-02-03 14:36:19,988 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['price', 'category']
+2026-02-03 14:36:19,988 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:19,989 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['price', 'category']
+2026-02-03 14:36:19,989 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'amount', 'order_time']
+2026-02-03 14:36:19,989 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:19,989 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'amount', 'order_time']
+2026-02-03 14:36:19,989 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['batch_time', 'start', 'end']
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['batch_time', 'start', 'end']
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['status', 'create_date']
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['status', 'create_date']
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['quantity', 'product_id', 'warehouse']
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:19,990 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['quantity', 'product_id', 'warehouse']
+2026-02-03 14:36:20,051 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-03 14:36:20,052 - SQLExtractor - INFO - 从SQL中提取到 3 个参数: ['id', 'name', 'create_time']
+2026-02-03 14:36:20,052 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:20,053 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 88，替换后长度: 98
+2026-02-03 14:36:20,057 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['error_code', 'language']
+2026-02-03 14:36:20,057 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:20,058 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['error_code', 'language', 'message']
+2026-02-03 14:36:20,058 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:20,058 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['new_message', 'error_code']
+2026-02-03 14:36:20,058 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:20,058 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['batch_time', 'start', 'end']
+2026-02-03 14:36:20,059 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:20,059 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['status', 'start_date']
+2026-02-03 14:36:20,059 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:20,059 - ParamExtractor - INFO - 从SQL中提取到 0 个参数: []
+2026-02-03 14:36:20,059 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 0 个参数
+2026-02-03 14:36:20,060 - ParamExtractor - INFO - 从SQL中提取到 0 个参数: []
+2026-02-03 14:36:20,060 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 0 个参数
+2026-02-03 14:36:20,060 - ParamExtractor - INFO - 从SQL中提取到 0 个参数: []
+2026-02-03 14:36:20,060 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 0 个参数
+2026-02-03 14:36:20,061 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['user_id_123', 'user-name']
+2026-02-03 14:36:20,061 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:20,061 - ParamExtractor - INFO - 从SQL中提取到 1 个参数: ['#{nested']
+2026-02-03 14:36:20,061 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 1 个参数
+2026-02-03 14:36:20,061 - ParamExtractor - INFO - 从SQL中提取到 1 个参数: ['very_long_parameter_name_that_exceeds_normal_length']
+2026-02-03 14:36:20,061 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 1 个参数
+2026-02-03 14:36:50,684 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'name']
+2026-02-03 14:36:50,685 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:50,685 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'name']
+2026-02-03 14:36:50,686 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['price', 'category']
+2026-02-03 14:36:50,686 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:50,686 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['price', 'category']
+2026-02-03 14:36:50,687 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'amount', 'order_time']
+2026-02-03 14:36:50,687 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:50,687 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'amount', 'order_time']
+2026-02-03 14:36:50,688 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['batch_time', 'start', 'end']
+2026-02-03 14:36:50,688 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:50,688 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['batch_time', 'start', 'end']
+2026-02-03 14:36:50,689 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['status', 'create_date']
+2026-02-03 14:36:50,689 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:50,689 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['status', 'create_date']
+2026-02-03 14:36:50,690 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['quantity', 'product_id', 'warehouse']
+2026-02-03 14:36:50,690 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:50,691 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['quantity', 'product_id', 'warehouse']
+2026-02-03 14:36:50,738 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-03 14:36:50,738 - SQLExtractor - INFO - 从SQL中提取到 3 个参数: ['id', 'name', 'create_time']
+2026-02-03 14:36:50,739 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:50,739 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 88，替换后长度: 98
+2026-02-03 14:36:50,746 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['error_code', 'language']
+2026-02-03 14:36:50,746 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:50,747 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['error_code', 'language', 'message']
+2026-02-03 14:36:50,747 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:50,748 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['new_message', 'error_code']
+2026-02-03 14:36:50,748 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:50,748 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['batch_time', 'start', 'end']
+2026-02-03 14:36:50,748 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-03 14:36:50,749 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['status', 'start_date']
+2026-02-03 14:36:50,749 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:50,750 - ParamExtractor - INFO - 从SQL中提取到 0 个参数: []
+2026-02-03 14:36:50,750 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 0 个参数
+2026-02-03 14:36:50,750 - ParamExtractor - INFO - 从SQL中提取到 0 个参数: []
+2026-02-03 14:36:50,750 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 0 个参数
+2026-02-03 14:36:50,751 - ParamExtractor - INFO - 从SQL中提取到 0 个参数: []
+2026-02-03 14:36:50,751 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 0 个参数
+2026-02-03 14:36:50,751 - ParamExtractor - INFO - 从SQL中提取到 2 个参数: ['user_id_123', 'user-name']
+2026-02-03 14:36:50,751 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:36:50,752 - ParamExtractor - INFO - 从SQL中提取到 1 个参数: ['#{nested']
+2026-02-03 14:36:50,752 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 1 个参数
+2026-02-03 14:36:50,752 - ParamExtractor - INFO - 从SQL中提取到 1 个参数: ['very_long_parameter_name_that_exceeds_normal_length']
+2026-02-03 14:36:50,752 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 1 个参数
+2026-02-03 14:42:10,510 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:10,514 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:10,527 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED SELECT * FROM users WHERE id = 1...
+2026-02-03 14:42:10,527 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELECT * FROM users WHERE id = 1' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELECT * FROM users WHERE id = 1' at line 1")
+2026-02-03 14:42:10,561 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED SELECT u.name, o.amount FROM users u JOIN orders o ON u.id = o.user_id...
+2026-02-03 14:42:10,561 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELECT u.name, o.amount FROM users u JOIN orders o ON u.id = o.user_id' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELECT u.name, o.amount FROM users u JOIN orders o ON u.id = o.user_id' at line 1")
+2026-02-03 14:42:10,578 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED INSERT INTO users (name, email) VALUES ('test', 'test@example.com')...
+2026-02-03 14:42:10,578 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'INSERT INTO users (name, email) VALUES ('test', 'test@example.com')' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'INSERT INTO users (name, email) VALUES ('test', 'test@example.com')' at line 1")
+2026-02-03 14:42:10,582 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED UPDATE users SET email = 'new@example.com' WHERE id = 1...
+2026-02-03 14:42:10,582 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'UPDATE users SET email = 'new@example.com' WHERE id = 1' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'UPDATE users SET email = 'new@example.com' WHERE id = 1' at line 1")
+2026-02-03 14:42:10,585 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED DELETE FROM users WHERE id = 1...
+2026-02-03 14:42:10,586 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'DELETE FROM users WHERE id = 1' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'DELETE FROM users WHERE id = 1' at line 1")
+2026-02-03 14:42:10,589 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:10,589 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:42:10,589 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:42:10,589 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:42:10,590 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-03 14:42:10,590 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-03 14:42:10,608 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-03 14:42:10,609 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'status']
+2026-02-03 14:42:10,609 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:42:10,609 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 59，替换后长度: 60
+2026-02-03 14:42:10,609 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:10,625 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED SELECT * FROM users WHERE id = 123 AND status = 'test_value'...
+2026-02-03 14:42:10,625 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELECT * FROM users WHERE id = 123 AND status = 'test_value'' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELECT * FROM users WHERE id = 123 AND status = 'test_value'' at line 1")
+2026-02-03 14:42:41,142 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:41,144 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:41,151 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED (SELECT * FROM users WHERE id = 1)...
+2026-02-03 14:42:41,151 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(SELECT * FROM users WHERE id = 1)' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 539, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(SELECT * FROM users WHERE id = 1)' at line 1")
+2026-02-03 14:42:41,170 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED (SELECT u.name, o.amount FROM users u JOIN orders o ON u.id = o.user_id)...
+2026-02-03 14:42:41,171 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(SELECT u.name, o.amount FROM users u JOIN orders o ON u.id = o.user_id)' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 539, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(SELECT u.name, o.amount FROM users u JOIN orders o ON u.id = o.user_id)' at line 1")
+2026-02-03 14:42:41,188 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED (INSERT INTO users (name, email) VALUES ('test', 'test@example.com'))...
+2026-02-03 14:42:41,189 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(INSERT INTO users (name, email) VALUES ('test', 'test@example.com'))' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 539, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(INSERT INTO users (name, email) VALUES ('test', 'test@example.com'))' at line 1")
+2026-02-03 14:42:41,193 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED (UPDATE users SET email = 'new@example.com' WHERE id = 1)...
+2026-02-03 14:42:41,193 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(UPDATE users SET email = 'new@example.com' WHERE id = 1)' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 539, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(UPDATE users SET email = 'new@example.com' WHERE id = 1)' at line 1")
+2026-02-03 14:42:41,196 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED (DELETE FROM users WHERE id = 1)...
+2026-02-03 14:42:41,196 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(DELETE FROM users WHERE id = 1)' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 539, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(DELETE FROM users WHERE id = 1)' at line 1")
+2026-02-03 14:42:41,199 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:41,199 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:42:41,199 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:42:41,200 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:42:41,200 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-03 14:42:41,200 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-03 14:42:41,224 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-03 14:42:41,224 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'status']
+2026-02-03 14:42:41,225 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:42:41,225 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 59，替换后长度: 60
+2026-02-03 14:42:41,225 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:42:41,226 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN EXTENDED (SELECT * FROM users WHERE id = 123 AND status = 'test_value')...
+2026-02-03 14:42:41,227 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(SELECT * FROM users WHERE id = 123 AND status = 'test_value')' at line 1")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 539, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(SELECT * FROM users WHERE id = 123 AND status = 'test_value')' at line 1")
+2026-02-03 14:44:35,568 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:44:35,570 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:44:35,577 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM users WHERE id = 1...
+2026-02-03 14:44:35,578 - MetadataCollector - ERROR - 获取执行计划时发生错误: 0
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 558, in get_execution_plan
+    row_dict[col] = row[i]
+                    ~~~^^^
+KeyError: 0
+2026-02-03 14:44:35,597 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT u.name, o.amount FROM users u JOIN orders o ON u.id = o.user_id...
+2026-02-03 14:44:35,598 - MetadataCollector - ERROR - 获取执行计划时发生错误: 0
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 558, in get_execution_plan
+    row_dict[col] = row[i]
+                    ~~~^^^
+KeyError: 0
+2026-02-03 14:44:35,614 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN INSERT INTO users (name, email) VALUES ('test', 'test@example.com')...
+2026-02-03 14:44:35,616 - MetadataCollector - ERROR - 获取执行计划时发生错误: 0
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 558, in get_execution_plan
+    row_dict[col] = row[i]
+                    ~~~^^^
+KeyError: 0
+2026-02-03 14:44:35,633 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN UPDATE users SET email = 'new@example.com' WHERE id = 1...
+2026-02-03 14:44:35,634 - MetadataCollector - ERROR - 获取执行计划时发生错误: 0
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 558, in get_execution_plan
+    row_dict[col] = row[i]
+                    ~~~^^^
+KeyError: 0
+2026-02-03 14:44:35,647 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN DELETE FROM users WHERE id = 1...
+2026-02-03 14:44:35,648 - MetadataCollector - ERROR - 获取执行计划时发生错误: 0
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 558, in get_execution_plan
+    row_dict[col] = row[i]
+                    ~~~^^^
+KeyError: 0
+2026-02-03 14:44:35,651 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:44:35,651 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:44:35,652 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:44:35,652 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:44:35,652 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-03 14:44:35,652 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-03 14:44:35,760 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-03 14:44:35,761 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'status']
+2026-02-03 14:44:35,761 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:44:35,762 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 59，替换后长度: 60
+2026-02-03 14:44:35,762 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:44:35,776 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM users WHERE id = 123 AND status = 'test_value'...
+2026-02-03 14:44:35,776 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1054, "Unknown column 'status' in 'where clause'")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1054, "Unknown column 'status' in 'where clause'")
+2026-02-03 14:45:32,785 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:45:32,788 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:45:32,802 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-03 14:45:32,803 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:45:32,805 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-03 14:45:32,805 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:45:32,807 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-03 14:45:32,808 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:45:32,825 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-03 14:45:32,826 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:45:32,828 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:45:32,829 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:45:32,829 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:45:32,829 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:45:32,829 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-03 14:45:32,830 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-03 14:45:32,892 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-03 14:45:32,894 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'status']
+2026-02-03 14:45:32,894 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:45:32,894 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 59，替换后长度: 60
+2026-02-03 14:45:32,894 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:45:32,895 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM users WHERE id = 123 AND status = 'test_value'...
+2026-02-03 14:45:32,899 - MetadataCollector - ERROR - 获取执行计划时发生错误: (1054, "Unknown column 'status' in 'where clause'")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 538, in get_execution_plan
+    cursor.execute(explain_sql)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 558, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 822, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 1200, in read
+    first_packet = self.connection._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1054, "Unknown column 'status' in 'where clause'")
+2026-02-03 14:48:01,401 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:48:01,404 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:48:01,413 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-03 14:48:01,413 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:48:01,416 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-03 14:48:01,416 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:48:01,418 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-03 14:48:01,418 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:48:01,434 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-03 14:48:01,435 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-03 14:48:01,436 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:48:01,437 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:48:01,437 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:48:01,437 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-03 14:48:01,437 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-03 14:48:01,437 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-03 14:48:01,494 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-03 14:48:01,494 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'project']
+2026-02-03 14:48:01,495 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-03 14:48:01,495 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 73，替换后长度: 73
+2026-02-03 14:48:01,495 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-03 14:48:01,515 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 123 AND PROJECTID = 'test_value'...
+2026-02-03 14:48:01,515 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-05 15:58:35,309 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-02-05 15:58:35,313 - ModelClient - INFO - 使用原始响应数据
+2026-02-05 15:58:35,313 - ModelClient - INFO - 解析API响应成功，SQL类型: 未知, 综合评分: 5.0
+2026-02-05 16:30:20,189 - test_parser - INFO - 大模型API客户端初始化完成
+2026-02-05 16:30:20,199 - test_simple - INFO - 大模型API客户端初始化完成
+2026-02-05 17:12:44,731 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-02-05 17:12:44,732 - ModelClient - INFO - 构建简化版prompt完成：长度=2383, 预览前500字符=
+SQL语句：
+INSERT INTO ecdcdb.pd_errcode (PEC_ERRCODE, PEC_LANGUAGE) VALUES ('20070004AC0010', 'zh_CN')
+
+数据库：ecdcdb
+
+涉及的表信息：
+
+表1：pd_errcode
+  - 行数：212
+  - 是否大表：否
+  - 列数：6
+  - 索引数：0
+  - 表存在性：是
+  - DDL：
+    CREATE TABLE pd_errcode (PEC_ERRCODE char(14) NOT NULL, PEC_LANGUAGE varchar(10), PEC_SHOWMSG varchar(200), PEC_INNERMSG varchar(200), PEC_CLASS varchar(6), PEC_LASTUPDATE timestamp(6) NOT NULL DEFAULT 'CURRENT_TIMESTAMP')
+  - 列信息：
+    * PEC_ERRCODE (char(14)) 非空
+    * PEC_LANGUAGE (varchar(10)) 可空
+2026-02-05 17:24:15,945 - ModelClient - INFO - 大模型API客户端初始化完成
+2026-02-05 17:24:15,945 - ModelClient - INFO - 构建简化版prompt完成：长度=2489, 预览前500字符=
+SQL语句：
+INSERT INTO ecdcdb.pd_errcode (PEC_ERRCODE, PEC_LANGUAGE, PEC_SHOWMSG, PEC_INNERMSG, PEC_CLASS, PEC_LASTUPDATE) VALUES('20070004AC0010', 'zh_CN', '命中金融惩戒名单，终止交易', '1', '2024-10-18 18:55:53.615353');
+
+数据库：ecdcdb
+
+涉及的表信息：
+
+表1：pd_errcode
+  - 行数：212
+  - 是否大表：否
+  - 列数：6
+  - 索引数：0
+  - 表存在性：是
+  - DDL：
+    CREATE TABLE pd_errcode (PEC_ERRCODE char(14) NOT NULL, PEC_LANGUAGE varchar(10), PEC_SHOWMSG varchar(200), PEC_INNERMSG varchar(200), PEC_CLASS varchar(6), PEC_LASTUPDATE timestamp(6) NOT NULL
+2026-02-06 11:09:36,441 - main - INFO - SQL提取器初始化完成
+2026-02-06 11:09:36,441 - main - INFO - 元数据收集器初始化完成
+2026-02-06 11:09:36,442 - main - INFO - 大模型API客户端初始化完成
+2026-02-06 11:09:36,442 - main - INFO - SQL提取器初始化完成
+2026-02-06 11:09:36,442 - main - INFO - 结果处理器初始化完成
+2026-02-06 11:09:36,442 - main - INFO - SQL质量分析器初始化完成
+2026-02-06 13:18:11,495 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:18:11,497 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:18:11,506 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-06 13:18:11,508 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:18:11,510 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-06 13:18:11,510 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:18:11,523 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-06 13:18:11,524 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:18:11,526 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-06 13:18:11,527 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:18:11,528 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:18:11,528 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 13:18:11,529 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 13:18:11,529 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 13:18:11,530 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-06 13:18:11,531 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-06 13:18:11,539 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 13:18:11,539 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'project']
+2026-02-06 13:18:11,540 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-06 13:18:11,540 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 73，替换后长度: 73
+2026-02-06 13:18:11,540 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:18:11,541 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 123 AND PROJECTID = 'test_value'...
+2026-02-06 13:18:11,542 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:23:30,364 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:23:30,366 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:23:30,373 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-06 13:23:30,373 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:23:30,377 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-06 13:23:30,378 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:23:30,384 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-06 13:23:30,385 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:23:30,388 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-06 13:23:30,389 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:23:30,390 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:23:30,391 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 13:23:30,391 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 13:23:30,391 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 13:23:30,392 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-06 13:23:30,392 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-06 13:23:30,400 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 13:23:30,400 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'project']
+2026-02-06 13:23:30,401 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-06 13:23:30,401 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 73，替换后长度: 73
+2026-02-06 13:23:30,401 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 13:23:30,402 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 123 AND PROJECTID = 'test_value'...
+2026-02-06 13:23:30,403 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>
+2026-02-06 13:23:49,728 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 13:23:49,728 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 13:23:49,729 - ResultProcessor - INFO - 结果处理器初始化完成
+2026-02-06 13:23:49,730 - SQLExtractor - INFO - 获取到 1 条待分析SQL
+2026-02-06 13:23:49,730 - ResultProcessor - INFO - 开始处理SQL ID 7364 的分析结果
+2026-02-06 13:23:49,734 - ResultProcessor - INFO - SQL ID 7364 分析结果存储成功
+2026-02-06 13:23:49,735 - SQLExtractor - WARNING - 更新SQL ID 7364 状态失败，未找到记录
+2026-02-06 13:23:49,735 - ResultProcessor - INFO - SQL ID 7364 分析结果处理完成，评分: 8.5
+2026-02-06 15:14:09,596 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:14:09,597 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:14:09,597 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 8 个参数
+2026-02-06 15:14:09,598 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['id', 'name', 'start_date']
+2026-02-06 15:14:09,598 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:14:09,598 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'action', 'log_time']
+2026-02-06 15:14:09,598 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:14:09,599 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['discount', 'category', 'min_stock']
+2026-02-06 15:14:09,599 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:17:29,602 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:17:29,602 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:17:29,603 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 8 个参数
+2026-02-06 15:17:29,603 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['id', 'name', 'start_date']
+2026-02-06 15:17:29,604 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:17:29,604 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'action', 'log_time']
+2026-02-06 15:17:29,604 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:17:29,604 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['discount', 'category', 'min_stock']
+2026-02-06 15:17:29,604 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:19:00,431 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:19:00,432 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:19:00,433 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 8 个参数
+2026-02-06 15:19:00,433 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['id', 'name', 'start_date']
+2026-02-06 15:19:00,433 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:19:00,434 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'action', 'log_time']
+2026-02-06 15:19:00,434 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:19:00,434 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['discount', 'category', 'min_stock']
+2026-02-06 15:19:00,434 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:20:34,363 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:20:34,364 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:20:34,365 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 8 个参数
+2026-02-06 15:20:34,366 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['id', 'name', 'start_date']
+2026-02-06 15:20:34,366 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:20:34,366 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['user_id', 'action', 'log_time']
+2026-02-06 15:20:34,366 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:20:34,366 - ParamExtractor - INFO - 从SQL中提取到 3 个参数: ['discount', 'category', 'min_stock']
+2026-02-06 15:20:34,367 - ParamExtractor - INFO - 生成替换参数后的SQL，替换了 3 个参数
+2026-02-06 15:25:01,561 - ParamExtractor - INFO - 从SQL中提取到 8 个参数: ['REMARK', 'DESCRIPTION', 'PHONE', 'REMARKCORPNAME', 'UPDATETIME', 'TYPE', 'USERID', 'EXTERNALUSERID']
+2026-02-06 15:34:03,541 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 15:34:03,543 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 15:34:03,554 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-06 15:34:03,554 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 15:34:03,556 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-06 15:34:03,557 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 15:34:03,559 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-06 15:34:03,560 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 15:34:03,562 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-06 15:34:03,562 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 15:34:03,566 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 15:34:03,566 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 15:34:03,566 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 15:34:03,566 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 15:34:03,567 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-06 15:34:03,567 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-06 15:34:03,584 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 15:34:03,584 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'project']
+2026-02-06 15:34:03,585 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-06 15:34:03,585 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 73，替换后长度: 73
+2026-02-06 15:34:03,585 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 15:34:03,601 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 123 AND PROJECTID = 'test_value'...
+2026-02-06 15:34:03,602 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:08:42,020 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:08:42,023 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:08:42,032 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-06 16:08:42,032 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:08:42,034 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-06 16:08:42,035 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:08:42,037 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-06 16:08:42,037 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:08:42,048 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-06 16:08:42,049 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:08:42,050 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:08:42,051 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:08:42,051 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:08:42,052 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:08:42,052 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-06 16:08:42,052 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-06 16:08:42,119 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 16:08:42,120 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'project']
+2026-02-06 16:08:42,120 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-06 16:08:42,121 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 73，替换后长度: 73
+2026-02-06 16:08:42,121 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:08:42,129 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 123 AND PROJECTID = 'test_value'...
+2026-02-06 16:08:42,130 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:10:30,613 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:10:30,615 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:10:30,622 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-06 16:10:30,622 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:10:30,624 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-06 16:10:30,624 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:10:30,626 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-06 16:10:30,626 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:10:30,627 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-06 16:10:30,627 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:10:30,630 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:10:30,631 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:10:30,631 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:10:30,631 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:10:30,632 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-06 16:10:30,632 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-06 16:10:30,687 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 16:10:30,687 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'project']
+2026-02-06 16:10:30,687 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-06 16:10:30,688 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 73，替换后长度: 73
+2026-02-06 16:10:30,688 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:10:30,688 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 123 AND PROJECTID = 'test_value'...
+2026-02-06 16:10:30,689 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:16:20,352 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:16:20,354 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:16:20,361 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 1...
+2026-02-06 16:16:20,362 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:16:20,364 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info LIMIT 5...
+2026-02-06 16:16:20,364 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:16:20,365 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT COUNT(*) as count FROM am_solline_info...
+2026-02-06 16:16:20,366 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:16:20,367 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE SQLLINE LIKE '%SELECT%'...
+2026-02-06 16:16:20,368 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-06 16:16:20,370 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:16:20,370 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:16:20,371 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:16:20,371 - MetadataCollector - INFO - SQL类型为 DDL，无需获取执行计划
+2026-02-06 16:16:20,371 - MetadataCollector - INFO - SQL类型为 DCL，无需获取执行计划
+2026-02-06 16:16:20,372 - MetadataCollector - INFO - SQL类型为 TCL，无需获取执行计划
+2026-02-06 16:16:20,390 - SQLExtractor - INFO - SQL提取器初始化完成
+2026-02-06 16:16:20,390 - SQLExtractor - INFO - 从SQL中提取到 2 个参数: ['id', 'project']
+2026-02-06 16:16:20,390 - SQLExtractor - INFO - 生成替换参数后的SQL，替换了 2 个参数
+2026-02-06 16:16:20,391 - SQLExtractor - INFO - 生成替换参数后的SQL，原始SQL长度: 73，替换后长度: 73
+2026-02-06 16:16:20,391 - MetadataCollector - INFO - 元数据收集器初始化完成
+2026-02-06 16:16:20,393 - MetadataCollector - INFO - 执行EXPLAIN语句: EXPLAIN SELECT * FROM am_solline_info WHERE ID = 123 AND PROJECTID = 'test_value'...
+2026-02-06 16:16:20,394 - MetadataCollector - INFO - 成功获取执行计划，结果类型: <class 'list'>, 长度: 1
+2026-02-09 11:14:28,520 - test_multi_db - INFO - 元数据收集器初始化完成
+2026-02-09 11:14:28,533 - test_multi_db - ERROR - 收集元数据时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_legacy_db'")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 40, in _create_connection
+    conn = pymysql.connect(
+        host=self.config.get('host', 'localhost'),
+    ...<6 lines>...
+        autocommit=True
+    )
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 358, in __init__
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 664, in connect
+    self._request_authentication()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 976, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\_auth.py", line 240, in caching_sha2_password_auth
+    pkt = conn._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1049, "Unknown database 'production_legacy_db'")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 138, in _init_mysql_pool
+    self.pool = PyMySQLConnectionPool(self.config, self.pool_size)
+                ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 34, in __init__
+    conn = self._create_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 52, in _create_connection
+    raise ConnectionError(f"创建数据库连接失败: {str(e)}")
+ConnectionError: 创建数据库连接失败: (1049, "Unknown database 'production_legacy_db'")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 51, in collect_metadata
+    target_db = DatabaseManager(target_config)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 251, in __init__
+    self.connector = DBConnector(config)
+                     ~~~~~~~~~~~^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 117, in __new__
+    instance._init_pool(config, pool_size)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 129, in _init_pool
+    self._init_mysql_pool()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 140, in _init_mysql_pool
+    raise ConnectionError(f"MySQL连接池初始化失败: {str(e)}")
+ConnectionError: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_legacy_db'")
+2026-02-09 11:14:28,553 - test_multi_db - ERROR - 收集元数据时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_a_db'")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 40, in _create_connection
+    conn = pymysql.connect(
+        host=self.config.get('host', 'localhost'),
+    ...<6 lines>...
+        autocommit=True
+    )
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 358, in __init__
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 664, in connect
+    self._request_authentication()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 976, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\_auth.py", line 240, in caching_sha2_password_auth
+    pkt = conn._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1049, "Unknown database 'production_a_db'")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 138, in _init_mysql_pool
+    self.pool = PyMySQLConnectionPool(self.config, self.pool_size)
+                ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 34, in __init__
+    conn = self._create_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 52, in _create_connection
+    raise ConnectionError(f"创建数据库连接失败: {str(e)}")
+ConnectionError: 创建数据库连接失败: (1049, "Unknown database 'production_a_db'")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 51, in collect_metadata
+    target_db = DatabaseManager(target_config)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 251, in __init__
+    self.connector = DBConnector(config)
+                     ~~~~~~~~~~~^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 117, in __new__
+    instance._init_pool(config, pool_size)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 129, in _init_pool
+    self._init_mysql_pool()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 140, in _init_mysql_pool
+    raise ConnectionError(f"MySQL连接池初始化失败: {str(e)}")
+ConnectionError: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_a_db'")
+2026-02-09 11:14:32,606 - test_multi_db - ERROR - 收集元数据时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+Traceback (most recent call last):
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 644, in connect
+    sock = socket.create_connection(
+        (self.host, self.port), self.connect_timeout, **kwargs
+    )
+  File "C:\Python313\Lib\socket.py", line 864, in create_connection
+    raise exceptions[0]
+  File "C:\Python313\Lib\socket.py", line 849, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 40, in _create_connection
+    conn = pymysql.connect(
+        host=self.config.get('host', 'localhost'),
+    ...<6 lines>...
+        autocommit=True
+    )
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 358, in __init__
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 711, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 138, in _init_mysql_pool
+    self.pool = PyMySQLConnectionPool(self.config, self.pool_size)
+                ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 34, in __init__
+    conn = self._create_connection()
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 52, in _create_connection
+    raise ConnectionError(f"创建数据库连接失败: {str(e)}")
+ConnectionError: 创建数据库连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 51, in collect_metadata
+    target_db = DatabaseManager(target_config)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 251, in __init__
+    self.connector = DBConnector(config)
+                     ~~~~~~~~~~~^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 117, in __new__
+    instance._init_pool(config, pool_size)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 129, in _init_pool
+    self._init_mysql_pool()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 140, in _init_mysql_pool
+    raise ConnectionError(f"MySQL连接池初始化失败: {str(e)}")
+ConnectionError: MySQL连接池初始化失败: 创建数据库连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2026-02-09 11:14:32,609 - test_multi_db - INFO - 从 4 个数据库实例收集元数据: db_production
+2026-02-09 11:14:32,610 - test_multi_db - INFO - 正在从实例 db_production 收集元数据
+2026-02-09 11:14:32,611 - test_multi_db - ERROR - 连接数据库实例 db_production 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_legacy_db'")
+2026-02-09 11:14:32,611 - test_multi_db - INFO - 正在从实例 db_production:1 收集元数据
+2026-02-09 11:14:32,619 - test_multi_db - ERROR - 连接数据库实例 db_production:1 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_a_db'")
+2026-02-09 11:14:32,622 - test_multi_db - INFO - 正在从实例 db_production:2 收集元数据
+2026-02-09 11:14:36,674 - test_multi_db - ERROR - 连接数据库实例 db_production:2 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2026-02-09 11:14:36,675 - test_multi_db - INFO - 正在从实例 db_production:3 收集元数据
+2026-02-09 11:14:40,730 - test_multi_db - ERROR - 连接数据库实例 db_production:3 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2026-02-09 11:14:40,730 - test_multi_db - INFO - 成功从 0 个实例收集到 0 个表的元数据
+2026-02-09 11:14:40,730 - test_multi_db - INFO - 依次尝试 4 个数据库实例查找表: ['test_table1', 'test_table2']
+2026-02-09 11:14:40,731 - test_multi_db - INFO - 尝试从实例 db_production 查找表
+2026-02-09 11:14:40,732 - test_multi_db - ERROR - 连接数据库实例 db_production 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_legacy_db'")
+2026-02-09 11:14:40,732 - test_multi_db - INFO - 尝试从实例 db_production:1 查找表
+2026-02-09 11:14:40,734 - test_multi_db - ERROR - 连接数据库实例 db_production:1 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (1049, "Unknown database 'production_a_db'")
+2026-02-09 11:14:40,734 - test_multi_db - INFO - 尝试从实例 db_production:2 查找表
+2026-02-09 11:14:44,771 - test_multi_db - ERROR - 连接数据库实例 db_production:2 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2026-02-09 11:14:44,771 - test_multi_db - INFO - 尝试从实例 db_production:3 查找表
+2026-02-09 11:14:48,801 - test_multi_db - ERROR - 连接数据库实例 db_production:3 时发生错误: MySQL连接池初始化失败: 创建数据库连接失败: (2003, "Can't connect to MySQL server on 'localhost' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+2026-02-09 11:14:48,802 - test_multi_db - WARNING - 在所有 4 个实例中都未找到表: ['test_table1', 'test_table2']
+2026-02-09 11:14:48,803 - test_multi_db_plan - INFO - 元数据收集器初始化完成
+2026-02-09 11:14:48,816 - test_multi_db_plan - ERROR - 获取执行计划时发生错误: (1049, "Unknown database 'production_legacy_db'")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 859, in get_execution_plan
+    conn = create_db_connection(target_config)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 220, in create_db_connection
+    conn = pymysql.connect(
+        host=config.get('host', 'localhost'),
+    ...<6 lines>...
+        autocommit=True
+    )
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 358, in __init__
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 664, in connect
+    self._request_authentication()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 976, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\_auth.py", line 240, in caching_sha2_password_auth
+    pkt = conn._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1049, "Unknown database 'production_legacy_db'")
+2026-02-09 11:14:48,831 - test_multi_db_plan - ERROR - 获取执行计划时发生错误: (1049, "Unknown database 'production_a_db'")
+Traceback (most recent call last):
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\data_collector\metadata_collector.py", line 859, in get_execution_plan
+    conn = create_db_connection(target_config)
+  File "E:\Code\sqlAnalize\sql_ai_analyzer\utils\db_connector_pymysql.py", line 220, in create_db_connection
+    conn = pymysql.connect(
+        host=config.get('host', 'localhost'),
+    ...<6 lines>...
+        autocommit=True
+    )
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 358, in __init__
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 664, in connect
+    self._request_authentication()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 976, in _request_authentication
+    auth_packet = _auth.caching_sha2_password_auth(self, auth_packet)
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\_auth.py", line 240, in caching_sha2_password_auth
+    pkt = conn._read_packet()
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\connections.py", line 772, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\protocol.py", line 221, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\26949\AppData\Roaming\Python\Python313\site-packages\pymysql\err.py", line 143, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1049, "Unknown database 'production_a_db'")
+2026-03-23 10:22:28,883 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:28,885 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:22:36,448 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,449 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:22:36,450 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,451 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:22:36,452 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,452 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:22:36,453 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,454 - ShellScriptSQLExtractor - INFO - 从内容中提取到 0 条SQL语句
+2026-03-23 10:22:36,545 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,546 - ShellScriptSQLExtractor - INFO - 从内容中提取到 4 条SQL语句
+2026-03-23 10:22:36,550 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,551 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:22:36,552 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,553 - ShellScriptSQLExtractor - INFO - 从内容中提取到 0 条SQL语句
+2026-03-23 10:22:36,557 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,557 - ShellScriptSQLExtractor - INFO - 从内容中提取到 3 条SQL语句
+2026-03-23 10:22:36,562 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,562 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:22:36,563 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,564 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:22:36,565 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,574 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:22:36,576 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,576 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:22:36,576 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:23:54,639 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:23:54,640 - ShellScriptSQLExtractor - INFO - 从内容中提取到 0 条SQL语句
+2026-03-23 10:24:15,928 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:24:15,929 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:52:01,867 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:01,869 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:52:09,405 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:09,407 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:52:17,781 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:17,784 - ShellScriptSQLExtractor - INFO - 从内容中提取到 4 条SQL语句
+2026-03-23 10:52:25,897 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,899 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:52:25,900 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,900 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:52:25,901 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,902 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:52:25,903 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,903 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:52:25,904 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,905 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 10:52:25,905 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,906 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:52:25,907 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,908 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:52:25,908 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,909 - ShellScriptSQLExtractor - INFO - 从内容中提取到 4 条SQL语句
+2026-03-23 10:52:25,910 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,911 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:52:25,911 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,912 - ShellScriptSQLExtractor - INFO - 从内容中提取到 3 条SQL语句
+2026-03-23 10:52:25,913 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,922 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 10:52:25,923 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,924 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 10:52:25,924 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 14:26:22,473 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,474 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 14:26:22,475 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,476 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 14:26:22,476 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,477 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 14:26:22,478 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,479 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 14:26:22,479 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,480 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-23 14:26:22,481 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,481 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 14:26:22,482 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,482 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 14:26:22,483 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,484 - ShellScriptSQLExtractor - INFO - 从内容中提取到 4 条SQL语句
+2026-03-23 14:26:22,485 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,485 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 14:26:22,486 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,487 - ShellScriptSQLExtractor - INFO - 从内容中提取到 3 条SQL语句
+2026-03-23 14:26:22,487 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,497 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-23 14:26:22,498 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,498 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-23 14:26:22,499 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-24 14:18:45,839 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,841 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-24 14:18:45,842 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,842 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-24 14:18:45,843 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,843 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-24 14:18:45,844 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,845 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-24 14:18:45,845 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,846 - ShellScriptSQLExtractor - INFO - 从内容中提取到 2 条SQL语句
+2026-03-24 14:18:45,846 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,847 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-24 14:18:45,847 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,848 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-24 14:18:45,849 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,850 - ShellScriptSQLExtractor - INFO - 从内容中提取到 4 条SQL语句
+2026-03-24 14:18:45,851 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,851 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-24 14:18:45,852 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,852 - ShellScriptSQLExtractor - INFO - 从内容中提取到 3 条SQL语句
+2026-03-24 14:18:45,853 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,863 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
+2026-03-24 14:18:45,864 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,864 - ShellScriptSQLExtractor - INFO - Shell脚本SQL提取器初始化完成
+2026-03-24 14:18:45,864 - ShellScriptSQLExtractor - INFO - 从内容中提取到 1 条SQL语句
