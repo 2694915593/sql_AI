@@ -1,0 +1,58 @@
+# AI-SQL质量分析系统依赖包
+# 核心依赖
+python>=3.7
+
+# 数据库连接
+PyMySQL>=1.0.0
+# psycopg2-binary 不可用，使用其他PostgreSQL方案或仅支持MySQL
+SQLAlchemy>=1.4.0
+
+# SQL解析
+sqlparse>=0.4.0
+
+# HTTP请求和API调用
+requests>=2.25.0
+aiohttp>=3.8.0  # 异步支持（可选）
+
+# 配置管理
+configparser>=5.3.0
+
+# 日志和监控
+loguru>=0.7.0  # 更友好的日志库
+python-json-logger>=2.0.0
+
+# 数据处理和工具
+pandas>=1.3.0  # 数据处理（可选）
+numpy>=1.21.0  # 数值计算（可选）
+
+# 并发处理
+threadpoolctl>=3.0.0
+
+# 测试和开发
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
+black>=23.0.0  # 代码格式化
+flake8>=6.0.0  # 代码检查
+mypy>=1.0.0  # 类型检查
+
+# 其他工具
+python-dotenv>=1.0.0  # 环境变量管理
+tenacity>=8.0.0  # 重试机制
+cachetools>=5.0.0  # 缓存支持
+paramiko>=3.4.0  # SSH远程连接
+
+# 安装命令：
+# pip install -r requirements.txt
+# 或者仅安装核心依赖：
+# pip install PyMySQL sqlparse requests configparser loguru
+
+# 注意：以下依赖在闭源社区不可用，已移除：
+# - psycopg2-binary (PostgreSQL支持)
+# - concurrent-log-handler
+# - docker
+
+# 替代方案：
+# 1. PostgreSQL支持：如果需要PostgreSQL，可以使用aiomysql+asyncmy或等待社区添加psycopg2
+# 2. 日志处理：使用loguru替代concurrent-log-handler
+# 3. Docker支持：使用系统级Docker命令替代python-docker库
